@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace PackMan
+namespace PacMan
 {
     static class Program
     {
@@ -16,7 +16,7 @@ namespace PackMan
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new frm_FormPrincipal());
         }
     }
 }
