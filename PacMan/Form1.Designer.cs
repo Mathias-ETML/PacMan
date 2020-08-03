@@ -38,7 +38,6 @@
             this.pan_PanGame.Name = "pan_PanGame";
             this.pan_PanGame.Size = new System.Drawing.Size(334, 137);
             this.pan_PanGame.TabIndex = 0;
-            this.pan_PanGame.Click += new System.EventHandler(this.pan_PanGame_Click);
             // 
             // frm_FormPrincipal
             // 
