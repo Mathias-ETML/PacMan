@@ -31,9 +31,10 @@ namespace PacMan
 
         public void Move()
         {
-            if (Body != null)
+            if (Body != null && this != null)
             {
-
+                Body.Dispose();
+                ((IDisposable)this).Dispose();
             }
         }
 

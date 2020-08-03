@@ -40,10 +40,11 @@ namespace PacMan
                 timer_PlayerAnimation = new Timer()
                 {
                     Interval = G_BYTETIMEBETWENGAMETICK,
-                    Enabled = true
                 };
 
                 timer_PlayerAnimation.Tick += PacManAnimation;
+
+                timer_PlayerAnimation.Start();
             }
         }
 
@@ -86,13 +87,15 @@ namespace PacMan
             return true;
         }
 
-        public bool boolIsPacManDead { get; } = false;
+        public bool boolIsPacManDead { get; set; } = false;
 
         public void Die()
         {
-            if (Body != null)
+            if (Body != null && this != null)
             {
                 StopPacManAnimation();
+                Body.Dispose();
+                ((IDisposable)this).Dispose();
             }
         }
 

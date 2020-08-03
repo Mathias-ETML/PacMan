@@ -32,9 +32,13 @@ namespace PacMan
 
             timer.Tick += OnUpdate;
 
-            // init the player/s packman/s
+            // init the array for the pacman's
             g_pacMans = new PacMan[g_byteNumberOfPlayer];
 
+            // init the array for the ghost
+            g_ghosts = new Ghost[G_NUMBEROFGHOST];
+
+            // init the player/s packman/s
             for (; g_byteNumberOfPacMan < g_byteNumberOfPlayer; g_byteNumberOfPacMan++)
             {
                 g_pacMans[g_byteNumberOfPacMan] = new PacMan();

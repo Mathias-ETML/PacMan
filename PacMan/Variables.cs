@@ -14,7 +14,7 @@ namespace PacMan
         public static byte g_byteNumberOfPlayer { get; set; } = 1;
         public static byte g_byteNumberOfPacMan { get; set; } = 0;
         public static byte g_byteNumberOfSpawnedGhost { get; set; } = 0;
-        public static Ghost[] g_ghosts { get; set; } = new Ghost[G_NUMBEROFGHOST];
+        public static Ghost[] g_ghosts { get; set; }
         public static PacMan[] g_pacMans { get; set; }
     }
 }
