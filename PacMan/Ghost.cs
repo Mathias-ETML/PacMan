@@ -54,6 +54,14 @@ namespace PacMan
 
         public void Move()
         {
+            if (Body != null)
+            {
+
+            }
+        }
+
+        public void Die()
+        {
             if (Body != null && this != null)
             {
                 Body.Dispose();
