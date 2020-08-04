@@ -63,13 +63,36 @@ namespace PacMan
         {
             if (Body != null)
             {
-
+                
             }
         }
 
         // int x etc.. where to move
-        public int intPacManPosX { get; set; } = 0;
-        public int intPacManPosY { get; set; } = 0;
+        public int intPacManPosX
+        {
+            get => Body.Location.X;
+            set
+            {
+                if (Body != null)
+                {
+                    Body.Location = new Point(value, Body.Location.Y);
+                }
+
+            }
+        }
+
+        public int intPacManPosY
+        {
+            get => Body.Location.Y;
+            set
+            {
+                if (Body != null)
+                {
+                    Body.Location = new Point(value, Body.Location.Y);
+                }
+
+            }
+        }
 
         public int intPacManMovementX { get; set; } = 0;
         public int intPacManMovementY { get; set; } = 0;

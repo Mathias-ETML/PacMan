@@ -8,13 +8,13 @@ namespace PacMan
 {
     public class Variables
     {
-        public static byte G_BYTESIZEOFSQUARE { get; } = 40;
-        public static byte G_BYTETIMEBETWENGAMETICK { get; } = 250; // in milliseconds
-        public static byte G_NUMBEROFGHOST { get; } = 4;
-        public static byte g_byteNumberOfPlayer { get; set; } = 1;
-        public static byte g_byteNumberOfPacMan { get; set; } = 0;
-        public static byte g_byteNumberOfSpawnedGhost { get; set; } = 0;
-        public static Ghost[] g_ghosts { get; set; }
-        public static PacMan[] g_pacMans { get; set; }
+        public static readonly byte G_BYTESIZEOFSQUARE = 40;
+        public static readonly byte G_BYTETIMEBETWENGAMETICK = 250; // in milliseconds
+        public static readonly byte G_NUMBEROFGHOST = 4;
+        public static byte g_byteNumberOfPlayer = 1;
+        public static byte g_byteNumberOfPacMan = 0;
+        public static byte g_byteNumberOfSpawnedGhost = 0;
+        public static Ghost[] g_ghosts;
+        public static PacMan[] g_pacMans;
     }
 }

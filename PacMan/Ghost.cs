@@ -23,8 +23,31 @@ namespace PacMan
         }
 
         // int x etc.. where to move
-        public int intGhostPosX { get; set; } = 0;
-        public int intGhostPosY { get; set; } = 0;
+        public int intGhostPosX
+        {
+            get => Body.Location.X;
+            set
+            {
+                if (Body != null)
+                {
+                    Body.Location = new Point(value, Body.Location.Y);
+                }
+
+            }
+        }
+
+        public int intGhostPosY
+        {
+            get => Body.Location.Y;
+            set
+            {
+                if (Body != null)
+                {
+                    Body.Location = new Point(value, Body.Location.Y);
+                }
+
+            }
+        }
 
         public int intGhostMovementX { get; set; } = 0;
         public int intGhostMovementY { get; set; } = 0;
