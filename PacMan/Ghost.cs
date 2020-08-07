@@ -13,11 +13,11 @@ namespace PacMan
     {
         public Panel Body { get; set; }
 
-        public Ghost()
+        public Ghost(int x, int y)
         {
             Body = new Panel()
             {
-                Location = new Point(30, 30),
+                Location = new Point(x, y),
                 Size = new Size(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE)
             };
         }
@@ -65,6 +65,10 @@ namespace PacMan
             if (Body != null && this != null)
             {
                 Body.Dispose();
+                ((IDisposable)this).Dispose();
+            }
+            else if (this != null)
+            {
                 ((IDisposable)this).Dispose();
             }
         }

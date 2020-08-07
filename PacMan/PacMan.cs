@@ -12,25 +12,32 @@ namespace PacMan
     public partial class PacMan
     {
         private Timer timer_PlayerAnimation;
-        public Panel Body { get; set; }
+        public Panel Body { get; }
+        private Rectangle mouth { get; set; }
 
-        public PacMan()
+        public PacMan(int x, int y)
         {
             Body = new Panel()
             {
-                Location = new Point(30, 30),
-                Size = new Size(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE)
+                Location = new Point(x, y),
+                Size = new Size(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE),
+                BackColor = Color.Black
             };
 
+            Body.Paint += Body_Paint;
+        }
+
+        private void Body_Paint(object sender, PaintEventArgs e)
+        {
             Graphics graphics = Body.CreateGraphics();
 
             // todo : graphic design for pacman
 
-            Rectangle rectangle = new Rectangle(0, 0, Body.Width, Body.Height);
+            Rectangle rectangle = new Rectangle(3, 3, Body.Width - 7, Body.Height - 7);
 
-            graphics.DrawRectangle(new Pen(Color.Black, 10), rectangle);
+            graphics.DrawEllipse(new Pen(Color.Yellow, 5), rectangle);
 
-            graphics.FillRectangle(new SolidBrush(Color.Yellow), rectangle);
+            graphics.FillEllipse(new SolidBrush(Color.Yellow), rectangle);
         }
 
         public void StartPacManAnimation()
@@ -118,6 +125,10 @@ namespace PacMan
             {
                 StopPacManAnimation();
                 Body.Dispose();
+                ((IDisposable)this).Dispose();
+            }
+            else if (this != null)
+            {
                 ((IDisposable)this).Dispose();
             }
         }
