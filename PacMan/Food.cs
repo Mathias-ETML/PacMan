@@ -53,7 +53,7 @@ namespace PacMan
     public class FoodType
     {
         // relation beetwen food and points to add
-        public Dictionary<Food.FoodMeaning, int> FoodRelation = new Dictionary<Food.FoodMeaning, int>(2)
+        public static Dictionary<Food.FoodMeaning, short> FoodRelation = new Dictionary<Food.FoodMeaning, short>(2)
         {
             {Food.FoodMeaning.FOOD, 100 },
             {Food.FoodMeaning.BIGFOOD, 1000 }

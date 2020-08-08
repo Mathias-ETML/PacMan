@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.pan_PanGame = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // pan_PanGame
@@ -40,23 +41,36 @@
             this.pan_PanGame.TabIndex = 0;
             this.pan_PanGame.Paint += new System.Windows.Forms.PaintEventHandler(this.pan_PanGame_Paint);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(919, 29);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(35, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "label1";
+            // 
             // frm_FormPrincipal
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(984, 786);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.pan_PanGame);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "frm_FormPrincipal";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "PacMan";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyPressed);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
         public System.Windows.Forms.Panel pan_PanGame;
+        public System.Windows.Forms.Label label1;
     }
 }
 

@@ -86,7 +86,8 @@ namespace PacMan
         };
         */
 
-        public MapMeaning[,] GameMap { get; set; } = new MapMeaning[MapHeight, MapWidth]
+        // WORK WITH : Y / X
+        public static MapMeaning[,] GameMap = new MapMeaning[MapHeight, MapWidth]
         {
             {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
             {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
@@ -111,8 +112,8 @@ namespace PacMan
 
         public class FoodMap
         {
-            public Food[,] tab_foods { get; set; } = new Food[MapWidth, MapHeight];
-    }
+            public static Food[,] tab_foods { get; set; } = new Food[MapWidth, MapHeight];
+        }
 
         public void Die()
         {

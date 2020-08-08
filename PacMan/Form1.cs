@@ -15,7 +15,6 @@ namespace PacMan
     {
         public Timer timer;
         public Map map;
-        public Map.FoodMap foodMap;
 
         public frm_FormPrincipal()
         {
@@ -61,26 +60,56 @@ namespace PacMan
         private void OnUpdate(object sender, EventArgs e)
         {
             g_tab_pacMans[0].Move();
+
+            label1.Text = g_tab_pacMans[0].PlayerScore.ToString();
         }
 
         private void pan_PanGame_Paint(object sender, PaintEventArgs e)
         {
-            if (map == null && foodMap == null)
+            if (map == null)
             {
                 map = new Map();
-                foodMap = new Map.FoodMap();
 
                 Graphics graphics = pan_PanGame.CreateGraphics();
 
-                for (int x = 0; x < Map.MapHeight; x++)
+                for (int y = 0; y < Map.MapHeight; y++)
                 {
-                    for (int y = 0; y < Map.MapWidth; y++)
+                    for (int x = 0; x < Map.MapWidth; x++)
                     {
-                        map.DrawMapRectangle(graphics, map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
+                        map.DrawMapRectangle(graphics, Map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
 
-                        foodMap.tab_foods[y, x] = new Food(graphics, (Food.FoodMeaning)map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
+                        Map.FoodMap.tab_foods[y, x] = new Food(graphics, (Food.FoodMeaning)Map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
                     }
                 }
+            }
+        }
+
+        private void KeyPressed(object sender, KeyEventArgs e)
+        {
+            switch (e.KeyCode)
+            {
+                case Keys.Up:
+                    g_tab_pacMans[0].intPacManMovementX = 0;
+                    g_tab_pacMans[0].intPacManMovementY = (sbyte)-PacMan.SpeedOfPacMan;
+                    break;
+
+                case Keys.Right:
+                    g_tab_pacMans[0].intPacManMovementX = (sbyte)PacMan.SpeedOfPacMan;
+                    g_tab_pacMans[0].intPacManMovementY = 0;
+                    break;
+
+                case Keys.Down:
+                    g_tab_pacMans[0].intPacManMovementX = 0;
+                    g_tab_pacMans[0].intPacManMovementY = (sbyte)PacMan.SpeedOfPacMan;
+                    break;
+
+                case Keys.Left:
+                    g_tab_pacMans[0].intPacManMovementX = (sbyte)-PacMan.SpeedOfPacMan;
+                    g_tab_pacMans[0].intPacManMovementY = 0;
+                    break;
+
+                default:
+                    break;
             }
         }
     }
