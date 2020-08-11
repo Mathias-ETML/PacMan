@@ -24,6 +24,8 @@ namespace PacMan
 
         private void OnStart()
         {
+            pan_PanGame.Focus();
+
             // init the OnUpdate
             timer = new Timer()
             {
@@ -61,7 +63,7 @@ namespace PacMan
         {
             g_tab_pacMans[0].Move();
 
-            label1.Text = g_tab_pacMans[0].PlayerScore.ToString();
+            label1.Text = g_tab_pacMans[0].Body.Location.ToString();
         }
 
         private void pan_PanGame_Paint(object sender, PaintEventArgs e)
@@ -89,23 +91,39 @@ namespace PacMan
             switch (e.KeyCode)
             {
                 case Keys.Up:
-                    g_tab_pacMans[0].intPacManMovementX = 0;
-                    g_tab_pacMans[0].intPacManMovementY = (sbyte)-PacMan.SpeedOfPacMan;
+                    if (Mouth.Position.North != Mouth.MouthDirection)
+                    {
+                        g_tab_pacMans[0].intPacManMovementX = 0;
+                        g_tab_pacMans[0].intPacManMovementY = (sbyte)-PacMan.SpeedOfPacMan;
+                        g_tab_pacMans[0].RotatePacManBody(Mouth.Position.North);
+                    }
                     break;
 
                 case Keys.Right:
-                    g_tab_pacMans[0].intPacManMovementX = (sbyte)PacMan.SpeedOfPacMan;
-                    g_tab_pacMans[0].intPacManMovementY = 0;
+                    if (Mouth.Position.South != Mouth.MouthDirection)
+                    {
+                        g_tab_pacMans[0].intPacManMovementX = (sbyte)PacMan.SpeedOfPacMan;
+                        g_tab_pacMans[0].intPacManMovementY = 0;
+                        g_tab_pacMans[0].RotatePacManBody(Mouth.Position.South);
+                    }
                     break;
 
                 case Keys.Down:
-                    g_tab_pacMans[0].intPacManMovementX = 0;
-                    g_tab_pacMans[0].intPacManMovementY = (sbyte)PacMan.SpeedOfPacMan;
+                    if (Mouth.Position.East != Mouth.MouthDirection)
+                    {
+                        g_tab_pacMans[0].intPacManMovementX = 0;
+                        g_tab_pacMans[0].intPacManMovementY = (sbyte)PacMan.SpeedOfPacMan;
+                        g_tab_pacMans[0].RotatePacManBody(Mouth.Position.East);
+                    }
                     break;
 
                 case Keys.Left:
-                    g_tab_pacMans[0].intPacManMovementX = (sbyte)-PacMan.SpeedOfPacMan;
-                    g_tab_pacMans[0].intPacManMovementY = 0;
+                    if (Mouth.Position.West != Mouth.MouthDirection)
+                    {
+                        g_tab_pacMans[0].intPacManMovementX = (sbyte)-PacMan.SpeedOfPacMan;
+                        g_tab_pacMans[0].intPacManMovementY = 0;
+                        g_tab_pacMans[0].RotatePacManBody(Mouth.Position.West);
+                    }
                     break;
 
                 default:

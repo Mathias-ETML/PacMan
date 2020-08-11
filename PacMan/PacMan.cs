@@ -15,6 +15,7 @@ namespace PacMan
         public Panel Body { get; }
         public static readonly byte SpeedOfPacMan = 10; // in px
         private Timer timer_PlayerAnimation { get; set; }
+        private Mouth.Position lastAuthorizedDirection { get; set; } = Mouth.Position.North;
 
         public PacMan(int x, int y)
         {
@@ -58,9 +59,9 @@ namespace PacMan
 
             graphics.FillEllipse(new SolidBrush(Color.Yellow), rectangle);
 
-            graphics.DrawPolygon(new Pen(Color.Black, 1), Mouth.North);
+            graphics.DrawPolygon(new Pen(Color.Black, 1), Mouth.relation[Mouth.Position.North]);
 
-            graphics.FillPolygon(new SolidBrush(Color.Black), Mouth.North);
+            graphics.FillPolygon(new SolidBrush(Color.Black), Mouth.relation[Mouth.Position.North]);
         }
 
         public void StartPacManAnimation()
@@ -98,19 +99,108 @@ namespace PacMan
         }
 
         /// <summary>
-        /// Work clock-wise
+        /// Change the mouth direction
+        /// TODO : WITH DEGREE
         /// </summary>
         /// <param name="position"> in what position do you want the packman mout to be </param>
-        public void RotatePacManBody(byte position)
+        public void RotatePacManBody(Mouth.Position direction)
         {
-            // todo : rotate the packman mouth
-            // first erase mouth by color it in yellow
-            // then redraw it in black in other position
+            Graphics graphics = Body.CreateGraphics();
 
+            graphics.DrawEllipse(new Pen(Color.Yellow, 1), 0, 0, G_BYTESIZEOFSQUARE - 1, G_BYTESIZEOFSQUARE - 1);
 
-            //graphics.DrawPolygon(new Pen(Color.Yellow, 1), Mouth.relation[Mouth.position]);
+            graphics.FillEllipse(new SolidBrush(Color.Yellow), 0, 0, G_BYTESIZEOFSQUARE - 1, G_BYTESIZEOFSQUARE - 1);
 
-            //graphics.FillPolygon(new SolidBrush(Color.Yellow), Mouth.position);
+            graphics.DrawPolygon(new Pen(Color.Black, 1), Mouth.relation[direction]);
+
+            graphics.FillPolygon(new SolidBrush(Color.Black), Mouth.relation[direction]);
+
+            if (!CheckIfPackManCanMoveWhenRotaded(Mouth.MouthDirection, direction))
+            {
+                intPacManMovementX = 0;
+                intPacManMovementY = 0;
+            }
+
+            Mouth.MouthDirection = direction;
+        }
+
+        private bool CheckIfPackManCanMoveWhenRotaded(Mouth.Position originalDirection, Mouth.Position nextDirection)
+        {
+            byte xPosition = (byte)((intPacManPosX / G_BYTESIZEOFSQUARE));
+            byte yPosition = (byte)((intPacManPosY / G_BYTESIZEOFSQUARE));
+            sbyte xFuturePosition = (sbyte)(intPacManMovementX / SpeedOfPacMan);
+            sbyte yFuturePosition = (sbyte)(intPacManMovementY / SpeedOfPacMan);
+
+            if (CheckIfOnGrid() && (Map.GameMap[yPosition, xPosition] != Map.MapMeaning.WALL))
+            {
+                lastAuthorizedDirection = nextDirection;
+                return true;
+            }
+
+            if (originalDirection + 2 == nextDirection)
+            {
+                if (lastAuthorizedDirection == nextDirection || lastAuthorizedDirection == nextDirection - 2 || lastAuthorizedDirection == nextDirection + 2)
+                {
+                    return true;
+                }
+
+                if (Map.GameMap[yPosition + yFuturePosition, xPosition + xFuturePosition] != Map.MapMeaning.WALL &&
+                Map.GameMap[yPosition + yFuturePosition + xFuturePosition, xPosition + xFuturePosition + yFuturePosition] != Map.MapMeaning.WALL)
+                {
+                    lastAuthorizedDirection = nextDirection;
+                    return true;
+                }
+            }
+            else if (originalDirection - 2 == nextDirection)
+            {
+                if (lastAuthorizedDirection == nextDirection || lastAuthorizedDirection == nextDirection - 2 || lastAuthorizedDirection == nextDirection + 2)
+                {
+                    return true;
+                }
+
+                if (Map.GameMap[yPosition + yFuturePosition, xPosition + xFuturePosition] != Map.MapMeaning.WALL &&
+                    Map.GameMap[yPosition + yFuturePosition + xFuturePosition, xPosition + xFuturePosition + yFuturePosition] != Map.MapMeaning.WALL)
+                {
+                    lastAuthorizedDirection = nextDirection;
+                    return true;
+                }
+            }
+            /*
+            originalDirection - 2 == nextDirection && Map.GameMap[yPosition, xPosition] == Map.MapMeaning.WALL &&
+            Map.GameMap[yPosition + (intPacManMovementY / SpeedOfPacMan), xPosition + (intPacManMovementX / SpeedOfPacMan)] != Map.MapMeaning.WALL )
+            */
+
+            /*
+            originalDirection + 2 == nextDirection && Map.GameMap[yPosition, xPosition] == Map.MapMeaning.WALL &&
+            Map.GameMap[yPosition + (intPacManMovementY / SpeedOfPacMan), xPosition + (intPacManMovementX / SpeedOfPacMan)] != Map.MapMeaning.WALL ||
+            */
+            //North,
+            //South,
+            //East,
+            //West
+            else if (lastAuthorizedDirection == nextDirection || lastAuthorizedDirection == nextDirection - 2 || lastAuthorizedDirection == nextDirection + 2)// || lastAuthorizedDirection == nextDirection - 1 && (byte)lastAuthorizedDirection % 2 != 0)
+            {
+
+                return true;
+
+                /*
+                if (Map.GameMap[yPosition, xPosition] != Map.MapMeaning.WALL)
+                {
+                    lastAuthorizedDirection = nextDirection;
+                    return true;
+                }
+                */
+            }
+            
+
+            //TODO : CHECK WITH LAST AUTORISED DIRECTION
+
+            return false;
+        }
+
+        private bool CheckIfOnGrid()
+        {
+            return intPacManPosY % G_BYTESIZEOFSQUARE == 0 && intPacManPosX % G_BYTESIZEOFSQUARE == 0;
         }
 
         // int x etc.. where to move
@@ -123,7 +213,6 @@ namespace PacMan
                 {
                     Body.Location = new Point(value, Body.Location.Y);
                 }
-
             }
         }
 
@@ -136,7 +225,6 @@ namespace PacMan
                 {
                     Body.Location = new Point(value, Body.Location.Y);
                 }
-
             }
         }
 
@@ -151,7 +239,7 @@ namespace PacMan
 
                 tab_intFutureLocation = CheckIfPacManCanMove();
 
-                Eat();
+                //Eat();
 
                 Body.Location = new Point(tab_intFutureLocation[0], tab_intFutureLocation[1]);
             }
@@ -159,29 +247,18 @@ namespace PacMan
 
         private int[] CheckIfPacManCanMove()
         {
-            int x = intPacManPosX + intPacManMovementX;
-            int y = intPacManPosY + intPacManMovementY;
-
             // check if on the grid
-            if (intPacManPosY % G_BYTESIZEOFSQUARE == 0 && intPacManPosX % G_BYTESIZEOFSQUARE == 0)
+            if (CheckIfOnGrid())
             {
                 // check if the block in front of him is a wall
+                // ERROR : WHEN ON X : 0, CHECK NEGATIV PLACE OF ARRAY
                 if (Map.GameMap[intPacManPosY / G_BYTESIZEOFSQUARE + intPacManMovementY / SpeedOfPacMan, intPacManPosX / G_BYTESIZEOFSQUARE + intPacManMovementX / SpeedOfPacMan] == Map.MapMeaning.WALL)
                 {
-                    x = intPacManPosX;
-                    y = intPacManPosY;
+                    return new int[2] { intPacManPosX, intPacManPosY };
                 }
             }
-            /*else if((Map.GameMap[((intPacManPosY - (intPacManPosY % G_BYTESIZEOFSQUARE)) / G_BYTESIZEOFSQUARE) + (intPacManMovementY / SpeedOfPacMan), ((intPacManPosX - (intPacManPosX % G_BYTESIZEOFSQUARE)) / G_BYTESIZEOFSQUARE) + (intPacManMovementX / SpeedOfPacMan)] == Map.MapMeaning.WALL))
-            {
-                intPacManMovementX = 0;
-                intPacManMovementY = 0;
 
-                x = intPacManPosX;
-                y = intPacManPosY;
-            }*/
-
-            return new int[2] { x, y };
+            return new int[2] { intPacManPosX + intPacManMovementX, intPacManPosY + intPacManMovementY };
         }
 
         public void Die()
@@ -202,7 +279,7 @@ namespace PacMan
 
         public void Eat()
         {
-            if (intPacManPosX % G_BYTESIZEOFSQUARE == 0 && intPacManPosY % G_BYTESIZEOFSQUARE == 0)
+            if (CheckIfOnGrid())
             {
                 if (Map.GameMap[intPacManPosY / G_BYTESIZEOFSQUARE, intPacManPosX / G_BYTESIZEOFSQUARE] != Map.MapMeaning.ROAD)
                 {
@@ -232,42 +309,42 @@ namespace PacMan
             West
         }
 
-        public static Position position = Position.North;
+        public static Position MouthDirection = Position.North;
         
-        public static Point[] North = new Point[3]
+        private static Point[] North = new Point[3]
         {
             new Point(G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4, 0),
             new Point(G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4, 0),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
         };
 
-        public static Point[] South = new Point[3]
+        private static Point[] South = new Point[3]
         {
             new Point(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4),
             new Point(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
         };
 
-        public static Point[] East = new Point[3]
+        private static Point[] East = new Point[3]
         {
             new Point(G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4, G_BYTESIZEOFSQUARE),
             new Point(G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4, G_BYTESIZEOFSQUARE),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
         };
 
-        public static Point[] West = new Point[3]
+        private static Point[] West = new Point[3]
         {
             new Point(0, G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4),
             new Point(0, G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
         };
 
-        public static Dictionary<Position, Point[]> relation = new Dictionary<Position, Point[]>(4)
+        public static readonly Dictionary<Position, Point[]> relation = new Dictionary<Position, Point[]>(4)
         {
-            {Position.North, North.ToArray() },
-            {Position.South, South.ToArray() },
-            {Position.East, East.ToArray() },
-            {Position.West, West.ToArray() }
+            {Position.North, North },
+            {Position.South, South },
+            {Position.East, East },
+            {Position.West, West }
         };
     }
 }
