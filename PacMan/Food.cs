@@ -14,7 +14,9 @@ namespace PacMan
 
         public FoodMeaning? Type { get => _type; } // can be null if the type is not in the enum
 
-        bool _disposed = false;
+        private bool _disposed = false;
+
+        public bool Disposed { get => _disposed; }
 
         private Point _foodLocation;
 

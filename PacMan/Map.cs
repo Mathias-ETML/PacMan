@@ -17,6 +17,35 @@ namespace PacMan
         private static Color _color;
 
         /// <summary>
+        /// List of rectangle to draw when mister pacman teleport
+        /// </summary>
+        private static readonly List<Rectangle> RightTeleportationPad = new List<Rectangle>(3)
+        {
+            {new Rectangle(640, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
+            {new Rectangle(680, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
+            {new Rectangle(720, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) }
+        };
+
+        /// <summary>
+        /// List of rectangle to draw when mister pacman teleport
+        /// </summary>
+        private static readonly List<Rectangle> LeftTeleportationPad = new List<Rectangle>(3)
+        {
+            {new Rectangle(0, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
+            {new Rectangle(40, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
+            {new Rectangle(80, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) }
+        };
+
+        /// <summary>
+        /// Get the list of rectangle to print
+        /// </summary>
+        public static readonly Dictionary<Point, List<Rectangle>> TeleportationPadDictionnary = new Dictionary<Point, List<Rectangle>>(2)
+        {
+            {new Point(40, 360), LeftTeleportationPad },
+            {new Point(680, 360), RightTeleportationPad }
+        };
+
+        /// <summary>
         /// Create a square with the propriety of the map
         /// </summary>
         /// <param name="graphics"> the graphics of the panel </param>
@@ -61,13 +90,14 @@ namespace PacMan
             { MapMeaning.WALL, Color.DarkBlue },
             { MapMeaning.ROAD, Color.Black },
             { MapMeaning.FOOD, Color.Black },
-            { MapMeaning.BIGFOOD, Color.Pink },
+            { MapMeaning.BIGFOOD, Color.Black },
             { MapMeaning.TELEPORT, Color.Yellow },
             { MapMeaning.DEBUG, Color.Red }
         };
 
         /// <summary>
         /// The map of the game
+        /// TODO : PUT IN JSON ?
         /// </summary>
         public static MapMeaning[,] GameMap = new MapMeaning[MapHeight, MapWidth]
         {
@@ -97,7 +127,7 @@ namespace PacMan
         /// </summary>
         public static class FoodMap
         {
-            public static Food[,] tab_foods { get; set; } = new Food[MapWidth, MapHeight];
+            public static Food[,] tab_foods = new Food[MapWidth, MapHeight];
         }
     }
 }

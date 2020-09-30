@@ -9,7 +9,7 @@ using static PacMan.Variables;
 
 namespace PacMan
 {
-    public partial class Ghost : AIRegroupgment
+    public partial class Ghost : AIRegroupgment, IDisposable
     {
         private Panel _body;
         private bool _disposed = false;
@@ -59,8 +59,6 @@ namespace PacMan
 
             this._type = Type;
         }
-
-
 
         public void SetPacManDeplacement(int x, int y)
         {
@@ -128,6 +126,9 @@ namespace PacMan
         }
     }
 
+    /// <summary>
+    /// Is this bad ? Idk, i never did abstract and override
+    /// </summary>
     public class AIRegroupgment
     {
         public class YellowAI : GhostAI

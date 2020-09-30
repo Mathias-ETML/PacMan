@@ -57,7 +57,10 @@ namespace PacMan
         /// <param name="e"></param>
         private void OnUpdate(object sender, EventArgs e)
         {
-            g_tab_pacMans[0].Move();
+            if (g_tab_pacMans[0].Move())
+            {
+                pan_PanMap.Paint += UpdateMapTeleportation;
+            }
 
             pan_PanMap.Paint += UpdateMap;
 
@@ -66,9 +69,16 @@ namespace PacMan
 
         private void UpdateMap(object sender, PaintEventArgs e)
         {
-            g_tab_pacMans[0].UpdateMap(e.Graphics);
+            g_tab_pacMans[0].UpdateMap(sender, e);
 
             ((Panel)sender).Paint -= UpdateMap;
+        }
+
+        private void UpdateMapTeleportation(object sender, PaintEventArgs e)
+        {
+            g_tab_pacMans[0].UpdateTeleportation(sender, e);
+
+            ((Panel)sender).Paint -= UpdateMapTeleportation;
         }
 
         private void pan_PanGame_Paint(object sender, PaintEventArgs e)
@@ -101,18 +111,18 @@ namespace PacMan
                     break;
 
                 case Keys.Right:
-                    if (Mouth.Position.South != Mouth.MouthDirection)
+                    if (Mouth.Position.East != Mouth.MouthDirection)
                     {
                         g_tab_pacMans[0].SetPacManDeplacement(PacMan.SpeedOfPacMan, 0);
-                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.South);
+                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.East);
                     }
                     break;
 
                 case Keys.Down:
-                    if (Mouth.Position.East != Mouth.MouthDirection)
+                    if (Mouth.Position.South != Mouth.MouthDirection)
                     {
                         g_tab_pacMans[0].SetPacManDeplacement(0, PacMan.SpeedOfPacMan);
-                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.East);
+                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.South);
                     }
                     break;
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
@@ -9,6 +10,9 @@ using System.Windows.Forms;
 using System.IO;
 using static PacMan.Variables;
 
+// FIXING THE NORTH WEST EAST WEST CONFUSION 
+// TRYING TO FIX THE TELPORTATION REDRAW BUGS
+// 
 namespace PacMan
 {
     public partial class PacMan : IDisposable
@@ -51,7 +55,6 @@ namespace PacMan
             _deplacementPacMan.X = x;
             _deplacementPacMan.Y = y;
         }
-
 
         public ulong PlayerScore { get => _playerScore; }
 
@@ -202,7 +205,7 @@ namespace PacMan
         /// Update the pacman location
         /// </summary>
         /// <returns> return if need to update the teleportation zone </returns>
-        public void Move()
+        public bool Move()
         {
             if (_body != null && !_disposed)
             {
@@ -225,6 +228,8 @@ namespace PacMan
                         {
                             // TODO : UPDATE MAP QUAND PACMAN SE TP, comment ? aucune idée
                             TeleportPacMan();
+
+                            return true;
                         }
                         break;
                     default:
@@ -236,7 +241,10 @@ namespace PacMan
                 Eat();
 
                 SetPacManLocation(tab_intFutureLocation[0], tab_intFutureLocation[1]);
+
             }
+
+            return false;
         }
 
         private int[] CheckIfPacManCanMove()
@@ -245,7 +253,6 @@ namespace PacMan
             if (CheckIfOnGrid())
             {
                 // check if the block in front of him is a wall
-                // ERROR : WHEN ON X : 0, CHECK NEGATIV PLACE OF ARRAY
                 if (Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE + _deplacementPacMan.Y / _speedOfPacMan, PacManLocation.X / G_BYTESIZEOFSQUARE + _deplacementPacMan.X / _speedOfPacMan] == Map.MapMeaning.WALL)
                 {
                     return new int[2] { PacManLocation.X, PacManLocation.Y };
@@ -255,8 +262,10 @@ namespace PacMan
             return new int[2] { PacManLocation.X + _deplacementPacMan.X, PacManLocation.Y + _deplacementPacMan.Y };
         }
 
-        public void UpdateMap(Graphics graphics)
+        public void UpdateMap(object sender, PaintEventArgs e)
         {
+            Graphics graphics = e.Graphics;
+
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
@@ -267,16 +276,7 @@ namespace PacMan
                     // TODO : explain why
                     Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) + 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y + G_BYTESIZEOFSQUARE);
                     break;
-                case Mouth.Position.South:
 
-                    // TODO : explain why
-                    //
-                    //
-                    //
-                    //
-                    Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) , (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
-                    Map.DrawMapRectangle(graphics, Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) + 1], PacManLocation.X + G_BYTESIZEOFSQUARE, PacManLocation.Y);
-                    return;
                 case Mouth.Position.East:
 
                     // TODO : explain why
@@ -284,9 +284,36 @@ namespace PacMan
                     //
                     //
                     //
-                    Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE) ], PacManLocation.X, PacManLocation.Y - G_BYTESIZEOFSQUARE);
-                    Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) - 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
+
+
+                    //Map.DrawMapRectangle(graphics, Map.MapMeaning.DEBUG, PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
+                    //Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
+
+                    if (Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1] != Map.MapMeaning.WALL && Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1] != Map.MapMeaning.TELEPORT)
+                    {
+                        // Debug.WriteLine($"checking {PacManLocation.Y / G_BYTESIZEOFSQUARE} {(PacManLocation.X / G_BYTESIZEOFSQUARE)}");
+                        Map.DrawMapRectangle(graphics, Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
+                    }
+                    else
+                    {
+                        // Debug.WriteLine($"checking {PacManLocation.Y / G_BYTESIZEOFSQUARE} {(PacManLocation.X / G_BYTESIZEOFSQUARE)}");
+                        //Map.DrawMapRectangle(graphics, Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y);
+                        Map.DrawMapRectangle(graphics, Map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - PacManLocation.X % G_BYTESIZEOFSQUARE, PacManLocation.Y);
+                    }
                     return;
+
+                case Mouth.Position.South:
+
+                    // TODO : explain why
+                    //
+                    //
+                    //
+                    //
+                    Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - G_BYTESIZEOFSQUARE);
+                    Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) - 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
+
+                    return;
+
                 case Mouth.Position.West:
 
                     // TODO : explain why
@@ -296,20 +323,29 @@ namespace PacMan
                     break;
             }
 
-            Map.DrawMapRectangle(graphics, Map.MapMeaning.DEBUG, PacManLocation.X, PacManLocation.Y);
+            Map.DrawMapRectangle(graphics, Map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y);
+            //Map.DrawMapRectangle(graphics, Map.MapMeaning.DEBUG, 0, 0);
+
         }
 
-        /*
-        public void UpdateTeleportation(Graphics graphics)
+        public void UpdateTeleportation(object sender, PaintEventArgs e)
         {
             Point buffer = TeleportRelation.WhereToTeleportPacMan.FirstOrDefault(x => x.Value == GetPacManLocation).Key;
+            Panel panel = ((Panel)sender);
 
-            Map.DrawMapRectangle(graphics, Map.MapMeaning.BIGFOOD, buffer.X, buffer.Y);
-            //Map.DrawMapRectangle(graphics, Map.GameMap[buffer.Y / G_BYTESIZEOFSQUARE, (buffer.X / G_BYTESIZEOFSQUARE) + 1], buffer.X + G_BYTESIZEOFSQUARE, buffer.Y);
-            Map.DrawMapRectangle(graphics, Map.MapMeaning.BIGFOOD, buffer.X + G_BYTESIZEOFSQUARE, buffer.Y);
-            Map.DrawMapRectangle(graphics, Map.MapMeaning.BIGFOOD, buffer.X - G_BYTESIZEOFSQUARE, buffer.Y);
+            foreach (Rectangle item in Map.TeleportationPadDictionnary[buffer])
+            {
+                e.Graphics.FillRectangle(new SolidBrush(Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]]), item);
+
+                //e.Graphics.DrawRectangle(new Pen(Map.MapDictionary[Map.MapMeaning.DEBUG], 5), item);
+
+                //e.Graphics.DrawRectangle(new Pen(Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]], 5), item);
+
+
+                //Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]];
+            }
         }
-        */
+        
 
         public void TeleportPacMan()
         {
@@ -375,7 +411,7 @@ namespace PacMan
             public static readonly Dictionary<Point, Point> WhereToTeleportPacMan = new Dictionary<Point, Point>(2)
             {
                 {FirstLocation, FirstLocationEnd },
-                {SecondLocation, SecondLocationEnd }
+                {SecondLocation, SecondLocationEnd}
             };
         }
     }
@@ -385,8 +421,8 @@ namespace PacMan
         public enum Position
         {
             North,
-            South,
             East,
+            South,
             West
         }
 
@@ -423,8 +459,8 @@ namespace PacMan
         public static readonly Dictionary<Position, Point[]> relation = new Dictionary<Position, Point[]>(4)
         {
             {Position.North, North },
-            {Position.South, South },
-            {Position.East, East },
+            {Position.East, South },
+            {Position.South, East },
             {Position.West, West }
         };
     }

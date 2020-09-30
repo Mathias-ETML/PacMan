@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PacMan
 {
-    public class Variables
+    public static class Variables
     {
         public static readonly byte G_BYTESIZEOFSQUARE = 40;
         public static readonly byte G_BYTETIMEBETWENGAMETICK = 100; // in milliseconds
