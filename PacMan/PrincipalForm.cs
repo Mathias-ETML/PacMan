@@ -103,34 +103,34 @@ namespace PacMan
             switch (e.KeyCode)
             {
                 case Keys.Up:
-                    if (Mouth.Position.North != Mouth.MouthDirection)
+                    if (PacMan.Mouth.Position.North != g_tab_pacMans[0].ActualMouthDirection)
                     {
                         g_tab_pacMans[0].SetPacManDeplacement(0, -PacMan.SpeedOfPacMan);
-                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.North);
+                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.North);
                     }
                     break;
 
                 case Keys.Right:
-                    if (Mouth.Position.East != Mouth.MouthDirection)
+                    if (PacMan.Mouth.Position.East != g_tab_pacMans[0].ActualMouthDirection)
                     {
                         g_tab_pacMans[0].SetPacManDeplacement(PacMan.SpeedOfPacMan, 0);
-                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.East);
+                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.East);
                     }
                     break;
 
                 case Keys.Down:
-                    if (Mouth.Position.South != Mouth.MouthDirection)
+                    if (PacMan.Mouth.Position.South != g_tab_pacMans[0].ActualMouthDirection)
                     {
                         g_tab_pacMans[0].SetPacManDeplacement(0, PacMan.SpeedOfPacMan);
-                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.South);
+                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.South);
                     }
                     break;
 
                 case Keys.Left:
-                    if (Mouth.Position.West != Mouth.MouthDirection)
+                    if (PacMan.Mouth.Position.West != g_tab_pacMans[0].ActualMouthDirection)
                     {
                         g_tab_pacMans[0].SetPacManDeplacement(-PacMan.SpeedOfPacMan, 0);
-                        g_tab_pacMans[0].RotatePacMan_body(Mouth.Position.West);
+                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.West);
                     }
                     break;
 

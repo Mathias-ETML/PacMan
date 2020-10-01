@@ -10,34 +10,45 @@ using System.Windows.Forms;
 using System.IO;
 using static PacMan.Variables;
 
-// FIXING THE NORTH WEST EAST WEST CONFUSION 
-// TRYING TO FIX THE TELPORTATION REDRAW BUGS
-// 
+// todo : finish this game before 2021
+// todo : master in potato recolting
+// todo : don't go crazy, don't go stupid
+/*
+ * 
+ * 
+ *  
+ * TODO : EVENT HANDLER TAKING MEMORY NOT GOOD OH HELL NO
+ * PS : FIX THEM MATHAIS PLEASE
+ */ 
+
 namespace PacMan
 {
     public partial class PacMan : IDisposable
     {
-
         private Panel _body;
         
-        public static readonly sbyte _speedOfPacMan = 10; // in px
         private Timer _onAnimationUpdate;
         private Mouth.Position _lastAuthorizedDirection = Mouth.Position.North;
+        private Mouth.Position _actualMouthDirection = Mouth.Position.North;
         private bool _disposed = false;
         private Graphics _pacManGraphics;
         //private bool _boolIsPacManMouthOpen = false;
-        public bool _boolCanPacManEatGhost = false;
+        private bool _boolCanPacManEatGhost = false;
         private ulong _playerScore { get; set; } = 0;
+
+        private static readonly sbyte _speedOfPacMan = 10; // in px
+        private Vector2 _deplacementPacMan;// = new Vector2(0, 0);
+
 
         public Panel Body { get => _body; }
 
-        public Point PacManLocation
+        private Point PacManLocation
         {
             get => _body.Location;
-            private set => _body.Location = new Point(value.X, value.Y);
+            set => _body.Location = new Point(value.X, value.Y);
         }
 
-        public Point GetPacManLocation { get => PacManLocation; }
+        public Point GetPacManLocation => PacManLocation;
 
         public void SetPacManLocation(int x, int y)
         {
@@ -46,8 +57,6 @@ namespace PacMan
 
         public static sbyte SpeedOfPacMan { get => _speedOfPacMan; }
 
-        private Vector2 _deplacementPacMan = new Vector2(0, 0);
-
         public Vector2 GetDeplacementPacMan { get => _deplacementPacMan; }
 
         public void SetPacManDeplacement(int x, int y)
@@ -55,6 +64,8 @@ namespace PacMan
             _deplacementPacMan.X = x;
             _deplacementPacMan.Y = y;
         }
+
+        public Mouth.Position ActualMouthDirection => _actualMouthDirection;
 
         public ulong PlayerScore { get => _playerScore; }
 
@@ -76,6 +87,8 @@ namespace PacMan
 
             // IT WORK BECAUSE ITS A EVENT HANDLER BUT NOT WITH GLOBAL GRAPHICS, WHY PLEASE EXPLAIN
             _body.Paint += CreatePacMan;
+
+            _deplacementPacMan = new Vector2(0, 0);
 
             //StartPacManAnimation();
         }
@@ -135,16 +148,20 @@ namespace PacMan
 
             DrawPacManMouth(direction);
 
-            if (!CheckIfPackManCanMoveWhenRotaded(Mouth.MouthDirection, direction))
+            if (!CheckIfPackManCanMoveWhenRotaded(direction))
             {
                 _deplacementPacMan.X = 0;
                 _deplacementPacMan.Y = 0;
             }
+            else
+            {
+                _lastAuthorizedDirection = direction;
+            }
 
-            Mouth.MouthDirection = direction;
+            _actualMouthDirection = direction;
         }
 
-        private bool CheckIfPackManCanMoveWhenRotaded(Mouth.Position originalDirection, Mouth.Position nextDirection)
+        private bool CheckIfPackManCanMoveWhenRotaded(Mouth.Position nextDirection)
         {
             byte xPosition = (byte)((PacManLocation.X / G_BYTESIZEOFSQUARE));
             byte yPosition = (byte)((PacManLocation.Y / G_BYTESIZEOFSQUARE));
@@ -162,7 +179,7 @@ namespace PacMan
                 return true;
             }
 
-            if (originalDirection + 2 == nextDirection)
+            if (_lastAuthorizedDirection + 2 == nextDirection)
             {
                 if (_lastAuthorizedDirection == nextDirection || _lastAuthorizedDirection == nextDirection - 2 || _lastAuthorizedDirection == nextDirection + 2)
                 {
@@ -176,7 +193,7 @@ namespace PacMan
                     return true;
                 }
             }
-            else if (originalDirection - 2 == nextDirection)
+            else if (_lastAuthorizedDirection - 2 == nextDirection)
             {
                 if (_lastAuthorizedDirection == nextDirection || _lastAuthorizedDirection == nextDirection - 2 || _lastAuthorizedDirection == nextDirection + 2)
                 {
@@ -227,6 +244,7 @@ namespace PacMan
                         if (CheckIfOnGrid())
                         {
                             // TODO : UPDATE MAP QUAND PACMAN SE TP, comment ? aucune idée
+                            // enfaite j'ai trouvé
                             TeleportPacMan();
 
                             return true;
@@ -269,7 +287,7 @@ namespace PacMan
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
-            switch (Mouth.MouthDirection)
+            switch (_lastAuthorizedDirection)
             {
                 case Mouth.Position.North:
 
@@ -330,20 +348,17 @@ namespace PacMan
 
         public void UpdateTeleportation(object sender, PaintEventArgs e)
         {
-            Point buffer = TeleportRelation.WhereToTeleportPacMan.FirstOrDefault(x => x.Value == GetPacManLocation).Key;
-            Panel panel = ((Panel)sender);
+            Point buffer = TeleportRelation.WhereToTeleportPacMan.FirstOrDefault(x => x.Value == PacManLocation).Key;
 
-            foreach (Rectangle item in Map.TeleportationPadDictionnary[buffer])
-            {
-                e.Graphics.FillRectangle(new SolidBrush(Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]]), item);
+            e.Graphics.FillRectangle(new SolidBrush(Map.MapDictionary[Map.GameMap[buffer.Y / G_BYTESIZEOFSQUARE, buffer.X / G_BYTESIZEOFSQUARE]]), new Rectangle(buffer.X, buffer.Y, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE));
 
-                //e.Graphics.DrawRectangle(new Pen(Map.MapDictionary[Map.MapMeaning.DEBUG], 5), item);
+            //e.Graphics.DrawRectangle(new Pen(Map.MapDictionary[Map.MapMeaning.DEBUG], 5), item);
 
-                //e.Graphics.DrawRectangle(new Pen(Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]], 5), item);
+            //e.Graphics.DrawRectangle(new Pen(Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]], 5), item);
 
 
-                //Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]];
-            }
+            //Map.MapDictionary[Map.GameMap[item.Location.Y / G_BYTESIZEOFSQUARE, item.Location.X / G_BYTESIZEOFSQUARE]];
+            
         }
         
 
@@ -414,56 +429,52 @@ namespace PacMan
                 {SecondLocation, SecondLocationEnd}
             };
         }
-    }
 
-    public static class Mouth
-    {
-        public enum Position
+        public static class Mouth
         {
-            North,
-            East,
-            South,
-            West
-        }
+            public enum Position
+            {
+                North,
+                East,
+                South,
+                West
+            }
 
-        public static Position MouthDirection = Position.North;
-        
-        private static Point[] North = new Point[3]
-        {
+            private static Point[] North = new Point[3]
+            {
             new Point(G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4, 0),
             new Point(G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4, 0),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
-        };
+            };
 
-        private static Point[] South = new Point[3]
-        {
+            private static Point[] South = new Point[3]
+            {
             new Point(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4),
             new Point(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
-        };
+            };
 
-        private static Point[] East = new Point[3]
-        {
+            private static Point[] East = new Point[3]
+            {
             new Point(G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4, G_BYTESIZEOFSQUARE),
             new Point(G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4, G_BYTESIZEOFSQUARE),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
-        };
+            };
 
-        private static Point[] West = new Point[3]
-        {
+            private static Point[] West = new Point[3]
+            {
             new Point(0, G_BYTESIZEOFSQUARE / 2 - G_BYTESIZEOFSQUARE / 4),
             new Point(0, G_BYTESIZEOFSQUARE / 2 + G_BYTESIZEOFSQUARE / 4),
             new Point(G_BYTESIZEOFSQUARE / 2, G_BYTESIZEOFSQUARE / 2)
-        };
+            };
 
-        public static readonly Dictionary<Position, Point[]> relation = new Dictionary<Position, Point[]>(4)
-        {
-            {Position.North, North },
-            {Position.East, South },
-            {Position.South, East },
-            {Position.West, West }
-        };
+            public static readonly Dictionary<Position, Point[]> relation = new Dictionary<Position, Point[]>(4)
+            {
+                {Position.North, North },
+                {Position.East, South },
+                {Position.South, East },
+                {Position.West, West }
+            };
+        }
     }
-
-
 }

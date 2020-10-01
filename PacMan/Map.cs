@@ -17,32 +17,12 @@ namespace PacMan
         private static Color _color;
 
         /// <summary>
-        /// List of rectangle to draw when mister pacman teleport
-        /// </summary>
-        private static readonly List<Rectangle> RightTeleportationPad = new List<Rectangle>(3)
-        {
-            {new Rectangle(640, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
-            {new Rectangle(680, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
-            {new Rectangle(720, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) }
-        };
-
-        /// <summary>
-        /// List of rectangle to draw when mister pacman teleport
-        /// </summary>
-        private static readonly List<Rectangle> LeftTeleportationPad = new List<Rectangle>(3)
-        {
-            {new Rectangle(0, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
-            {new Rectangle(40, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
-            {new Rectangle(80, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) }
-        };
-
-        /// <summary>
         /// Get the list of rectangle to print
         /// </summary>
-        public static readonly Dictionary<Point, List<Rectangle>> TeleportationPadDictionnary = new Dictionary<Point, List<Rectangle>>(2)
+        public static readonly Dictionary<Point, Rectangle> TeleportationPadDictionnary = new Dictionary<Point, Rectangle>(2)
         {
-            {new Point(40, 360), LeftTeleportationPad },
-            {new Point(680, 360), RightTeleportationPad }
+            {new Point(40, 360), new Rectangle(680, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
+            {new Point(680, 360), new Rectangle(680, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) }
         };
 
         /// <summary>
