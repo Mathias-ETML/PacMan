@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PacMan
+﻿namespace PacMan
 {
+    /// <summary>
+    /// Global variables class
+    /// </summary>
     public static class Variables
     {
+        #region static variables
         public static readonly byte G_BYTESIZEOFSQUARE = 40;
         public static readonly byte G_BYTETIMEBETWENGAMETICK = 100; // in milliseconds
         public static readonly byte G_NUMBEROFGHOST = 4;
-        public static byte g_byteNumberOfPlayer = 1;
-        public static byte g_byteNumberOfPacMan = 0;
-        public static byte g_byteNumberOfSpawnedGhost = 0;
-        public static Ghost[] g_tab_ghosts;
-        public static PacMan[] g_tab_pacMans;
+        public static byte G_numberOfPlayer = 1;
+        public static byte G_numberOfPacMan = 0;
+        public static byte G_numberOfSpawnedGhost = 0;
+        public static Ghost[] G_ghosts;
+        public static PacMan[] G_pacMans;
+        #endregion static variables
     }
 }

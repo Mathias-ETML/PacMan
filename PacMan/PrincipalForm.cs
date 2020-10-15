@@ -14,42 +14,66 @@ namespace PacMan
 {
     public partial class frm_FormPrincipal : Form
     {
-        public Timer timer;
+        #region Atrributs
+        /// <summary>
+        /// Attributs
+        /// </summary>
+        private Timer _timer;
+        private Map _map;
+        #endregion Attributs
 
+        #region Proprieties
+        /// <summary>
+        /// Proprieties
+        /// </summary>
+        public Map Map { get => _map; }
+        #endregion Proprieties
+
+        #region Constructor
+        /// <summary>
+        /// Custom constructor
+        /// </summary>
         public frm_FormPrincipal()
         {
             InitializeComponent();
             OnStart();
         }
+        #endregion Construcotr
 
+        #region On start
         private void OnStart()
         {
+            // create the map of the game
+            this._map = new Map();
+
             // init the OnUpdate
-            timer = new Timer()
+            _timer = new Timer()
             {
                 Interval = G_BYTETIMEBETWENGAMETICK,
                 Enabled = true
             };
+            _timer.Tick += OnUpdate;
 
-            timer.Tick += OnUpdate;
-
-            pan_PanMap.Paint += pan_PanGame_Paint;
+            // init the first painting of the map
+            this.pan_PanMap.Paint += FoodMapDisposition;
 
             // init the array for the pacman's
-            g_tab_pacMans = new PacMan[g_byteNumberOfPlayer];
+            G_pacMans = new PacMan[G_numberOfPlayer];
 
             // init the array for the ghost
-            g_tab_ghosts = new Ghost[G_NUMBEROFGHOST];
-            
+            G_ghosts = new Ghost[G_NUMBEROFGHOST];
+
             // init the player/s packman/s
-            for (; g_byteNumberOfPacMan < g_byteNumberOfPlayer; g_byteNumberOfPacMan++)
+            for (; G_numberOfPacMan < G_numberOfPlayer; G_numberOfPacMan++)
             {
                 //g_tab_pacMans[g_byteNumberOfPacMan] = new PacMan(680, 360);
-                g_tab_pacMans[g_byteNumberOfPacMan] = new PacMan(9 * G_BYTESIZEOFSQUARE, 15 * G_BYTESIZEOFSQUARE);
-                pan_PanMap.Controls.Add(g_tab_pacMans[g_byteNumberOfPacMan].Body);
+                G_pacMans[G_numberOfPacMan] = new PacMan(9 * G_BYTESIZEOFSQUARE, 15 * G_BYTESIZEOFSQUARE, _map);
+                pan_PanMap.Controls.Add(G_pacMans[G_numberOfPacMan].Body);
             }
         }
+        #endregion OnStart
 
+        #region main loop
         /// <summary>
         /// This is the main loop
         /// </summary>
@@ -57,31 +81,35 @@ namespace PacMan
         /// <param name="e"></param>
         private void OnUpdate(object sender, EventArgs e)
         {
-            if (g_tab_pacMans[0].Move())
+            if (G_pacMans[0].Move())
             {
                 pan_PanMap.Paint += UpdateMapTeleportation;
             }
 
             pan_PanMap.Paint += UpdateMap;
 
-            label1.Text = g_tab_pacMans[0].Body.Location.ToString();
+            label1.Text = G_pacMans[0].Body.Location.ToString();
         }
+        #endregion main loop
 
+        #region Map update
         private void UpdateMap(object sender, PaintEventArgs e)
         {
-            g_tab_pacMans[0].UpdateMap(sender, e);
+            G_pacMans[0].UpdateMap(sender, e);
 
             ((Panel)sender).Paint -= UpdateMap;
         }
 
         private void UpdateMapTeleportation(object sender, PaintEventArgs e)
         {
-            g_tab_pacMans[0].UpdateTeleportation(sender, e);
+            G_pacMans[0].UpdateTeleportation(sender, e);
 
             ((Panel)sender).Paint -= UpdateMapTeleportation;
         }
+        #endregion Map update
 
-        private void pan_PanGame_Paint(object sender, PaintEventArgs e)
+        #region food map application
+        private void FoodMapDisposition(object sender, PaintEventArgs e)
         {
             Graphics graphics = e.Graphics;
 
@@ -91,46 +119,53 @@ namespace PacMan
                 {
                     Map.DrawMapRectangle(graphics, Map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
 
-                    Map.FoodMap.tab_foods[y, x] = new Food(graphics, (Food.FoodMeaning)Map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
+                    _map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)Map.GameMap[y, x], x * G_BYTESIZEOFSQUARE, y * G_BYTESIZEOFSQUARE);
                 }
             }
 
-            ((Panel)sender).Paint -= pan_PanGame_Paint;
+            ((Panel)sender).Paint -= FoodMapDisposition;
         }
+        #endregion food map application
 
+        #region user input
+        /// <summary>
+        /// Get what key we pressed
+        /// </summary>
+        /// <param name="sender">the panel</param>
+        /// <param name="e">informations</param>
         private void KeyPressed(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
                 case Keys.Up:
-                    if (PacMan.Mouth.Position.North != g_tab_pacMans[0].ActualMouthDirection)
+                    if (PacMan.Mouth.Position.North != G_pacMans[0].ActualMouthDirection)
                     {
-                        g_tab_pacMans[0].SetPacManDeplacement(0, -PacMan.SpeedOfPacMan);
-                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.North);
+                        G_pacMans[0].SetPacManDeplacement(0, -PacMan.SpeedOfPacMan);
+                        G_pacMans[0].RotatePacManBody(PacMan.Mouth.Position.North);
                     }
                     break;
 
                 case Keys.Right:
-                    if (PacMan.Mouth.Position.East != g_tab_pacMans[0].ActualMouthDirection)
+                    if (PacMan.Mouth.Position.East != G_pacMans[0].ActualMouthDirection)
                     {
-                        g_tab_pacMans[0].SetPacManDeplacement(PacMan.SpeedOfPacMan, 0);
-                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.East);
+                        G_pacMans[0].SetPacManDeplacement(PacMan.SpeedOfPacMan, 0);
+                        G_pacMans[0].RotatePacManBody(PacMan.Mouth.Position.East);
                     }
                     break;
 
                 case Keys.Down:
-                    if (PacMan.Mouth.Position.South != g_tab_pacMans[0].ActualMouthDirection)
+                    if (PacMan.Mouth.Position.South != G_pacMans[0].ActualMouthDirection)
                     {
-                        g_tab_pacMans[0].SetPacManDeplacement(0, PacMan.SpeedOfPacMan);
-                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.South);
+                        G_pacMans[0].SetPacManDeplacement(0, PacMan.SpeedOfPacMan);
+                        G_pacMans[0].RotatePacManBody(PacMan.Mouth.Position.South);
                     }
                     break;
 
                 case Keys.Left:
-                    if (PacMan.Mouth.Position.West != g_tab_pacMans[0].ActualMouthDirection)
+                    if (PacMan.Mouth.Position.West != G_pacMans[0].ActualMouthDirection)
                     {
-                        g_tab_pacMans[0].SetPacManDeplacement(-PacMan.SpeedOfPacMan, 0);
-                        g_tab_pacMans[0].RotatePacMan_body(PacMan.Mouth.Position.West);
+                        G_pacMans[0].SetPacManDeplacement(-PacMan.SpeedOfPacMan, 0);
+                        G_pacMans[0].RotatePacManBody(PacMan.Mouth.Position.West);
                     }
                     break;
 
@@ -138,5 +173,6 @@ namespace PacMan
                     break;
             }
         }
+        #endregion user input
     }
 }

@@ -7,28 +7,55 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static PacMan.Variables;
 
+/*
+ * TODO : EXCEPTIONS WHEN SOMETHING GOES WRONG
+ * TODO : Comments
+ * TODO : IA for ghosts
+ * TODO : REGIONS
+ */
 namespace PacMan
 {
     public partial class Ghost : AIRegroupgment, IDisposable
     {
+        /*
+        YELLOW : 
+        BLUE : Random at each intersection
+        PINK : Scared, go to opposit of youself, but if you are in a radius of you, chase you for 5 sec max
+        RED : Chase you, try to go to the close way possible of you
+        */
+        #region variables
+        #region enum
+        /// <summary>
+        /// Enum for the type of ghost
+        /// </summary>
+        public enum Type : byte
+        {
+            YELLOW,
+            BLUE,
+            PINK,
+            RED
+        }
+        #endregion enum
+
         private Panel _body;
         private bool _disposed = false;
-        private GhostType.Type _type;
+        private Type _type;
         private GhostAI _AI;
+        private Vector2 DeplacementGhost;
+        #endregion variables
 
+        #region proprieties
         public Panel Body { get => _body; }
-
         public Point GhostLocation
         {
             get => _body.Location;
             set => _body.Location = new Point(value.X, value.Y);
         }
-
-        private Vector2 DeplacementGhost;
-
         public Vector2 GetDeplacementGhost { get => DeplacementGhost; }
+        #endregion proprieties
 
-        public Ghost(int x, int y, GhostType.Type Type)
+        #region Ghost construtor
+        public Ghost(int x, int y, Type type)
         {
             _body = new Panel()
             {
@@ -38,18 +65,18 @@ namespace PacMan
 
             DeplacementGhost = new Vector2(0, 0);
 
-            switch (Type)
+            switch (type)
             {
-                case GhostType.Type.YELLOW:
+                case Type.YELLOW:
                     _AI = new YellowAI();
                     break;
-                case GhostType.Type.BLUE:
+                case Type.BLUE:
                     _AI = new BlueAI();
                     break;
-                case GhostType.Type.PINK:
+                case Type.PINK:
                     _AI = new PinkAI();
                     break;
-                case GhostType.Type.RED:
+                case Type.RED:
                     _AI = new RedAI();
                     break;
                 default:
@@ -57,15 +84,11 @@ namespace PacMan
                     break;
             }
 
-            this._type = Type;
+            this._type = type;
         }
+        #endregion Ghost constructor
 
-        public void SetPacManDeplacement(int x, int y)
-        {
-            DeplacementGhost.X = x;
-            DeplacementGhost.Y = y;
-        }
-
+        #region Ghost update
         public void Move()
         {
             if (_body != null && _AI != null)
@@ -73,10 +96,9 @@ namespace PacMan
                 _AI.OnUpdate();
             }
         }
+        #endregion Ghost update
 
-        //public int intWhereGhostNeedToMoveX { get; set; } = 0;
-        //public int intWhereGhostNeedToMoveY { get; set; } = 0;
-
+        #region Ghost deplacment
         public void ChangeGhostDirection()
         {
             if (_body != null)
@@ -85,8 +107,16 @@ namespace PacMan
             }
         }
 
+        public void SetGhostDeplacement(int x, int y)
+        {
+            DeplacementGhost.X = x;
+            DeplacementGhost.Y = y;
+        }
+        #endregion Ghost deplacment
+
+        #region memory managment
         /// <summary>
-        /// disposing
+        /// Dispose
         /// </summary>
         public void Dispose()
         {
@@ -106,26 +136,10 @@ namespace PacMan
             GC.SuppressFinalize(this);
             _disposed = true;
         }
+        #endregion memory managment
     }
 
-    public class GhostType
-    {
-        /*
-        YELLOW : 
-        BLUE : Random at each intersection
-        PINK : Scared, go to opposit of youself, but if you are in a radius of you, chase you for 5 sec max
-        RED : Chase you, try to go to the close way possible of you
-        */
-
-        public enum Type : byte
-        {
-            YELLOW,
-            BLUE,
-            PINK,
-            RED
-        }
-    }
-
+    #region Ghost AI
     /// <summary>
     /// Is this bad ? Idk, i never did abstract and override
     /// </summary>
@@ -168,4 +182,5 @@ namespace PacMan
     {
         public abstract void OnUpdate();
     }
+    #endregion Ghost AI
 }

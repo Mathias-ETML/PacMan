@@ -7,24 +7,120 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static PacMan.Variables;
 
+/*
+ * TODO : put map in json
+ * TODO : REGIONS
+ */
 namespace PacMan
 {
     public class Map
     {
-        public const int MapWidth = 19;
-        public const int MapHeight = 19;
-
-        private static Color _color;
+        #region attributs
+        #region enum
+        /// <summary>
+        /// Enum
+        /// </summary>
+        public enum MapMeaning : byte
+        {
+            EMPTY,
+            WALL,
+            ROAD,
+            FOOD,
+            BIGFOOD,
+            TELEPORT,
+        }
+        #endregion enum
 
         /// <summary>
-        /// Get the list of rectangle to print
+        /// Attributs
         /// </summary>
-        public static readonly Dictionary<Point, Rectangle> TeleportationPadDictionnary = new Dictionary<Point, Rectangle>(2)
-        {
-            {new Point(40, 360), new Rectangle(680, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) },
-            {new Point(680, 360), new Rectangle(680, 360, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE) }
-        };
+        private readonly int _mapWidth;
+        private readonly int _mapHeight;
+        private static Color _color;
+        private FoodMap _foodMap;
+        private MapMeaning[,] _gameMap;
+        #endregion attributs
 
+        #region proprieties
+        /// <summary>
+        /// Propriety
+        /// </summary>
+        public int MapWidth { get => _mapWidth; }
+        public int MapHeight { get => _mapHeight; }
+        public MapMeaning[,] GameMap { get => _gameMap; set => _gameMap = value; }
+        public Food[,] FoodsMap { get => _foodMap.FoodsMap; }
+        #endregion proprieties
+
+        #region Constructor
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public Map()
+        {
+            // new json convertor made by me, its bad BUT it work and i am not a god
+            JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map);
+
+            // getting the data
+            if (jsonConvertor.TryCreateElementByName("map"))
+            {
+                if (jsonConvertor.TryGetElementByName("map", out JsonConvertor.JsonNode jsonNode))
+                {
+                    if (jsonNode.TryGetElementByName("height", out JsonConvertor.JsonNode.JsonData jsonData1))
+                    {
+                        this._mapHeight = jsonData1.Data;
+                    }
+
+                    if (jsonNode.TryGetElementByName("width", out JsonConvertor.JsonNode.JsonData jsonData2))
+                    {
+                        this._mapWidth = jsonData2.Data;
+                    }
+                }
+            }
+
+            // creating the map with the data
+            this._gameMap = new MapMeaning[_mapHeight, _mapWidth];
+
+            // creating the map for the foood
+            this._foodMap = new FoodMap(_mapHeight, _mapWidth);
+
+            // getting the map data
+            if (jsonConvertor.TryGetElementByName("map", out JsonConvertor.JsonNode jsonNode2))
+            {
+                if (jsonNode2.TryGetElementByName("data", out JsonConvertor.JsonNode.JsonData jsonData))
+                {
+                    this._gameMap = DataTransformation.MultidimentionalStringArrayToEnum<MapMeaning>(jsonData.Data);
+                    //string[,] bru = jsonData.Data;
+                }
+            }
+
+            /*
+            this._gameMap = new MapMeaning[19, 19]
+            {
+                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
+                {MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,},
+                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.TELEPORT,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.FOOD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.FOOD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.TELEPORT,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
+                {MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,},
+                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
+                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
+            };
+            */
+        }
+        #endregion constructor
+
+        #region Map drawing
         /// <summary>
         /// Create a square with the propriety of the map
         /// </summary>
@@ -37,30 +133,14 @@ namespace PacMan
             _color = MapDictionary[mapMeaning];
 
             // auto dispose
-            /*
-            using (Pen pen = new Pen(Color.Pink, 5))
-            {
-                graphics.DrawRectangle(pen, x, y, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE);
-            }
-            */
-            // auto dispose
             using (SolidBrush solidBrush = new SolidBrush(_color))
             {
                 graphics.FillRectangle(solidBrush, x, y, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE);
             }
         }
+        #endregion Map drawing
 
-        public enum MapMeaning : byte
-        {
-            EMPTY,
-            WALL,
-            ROAD,
-            FOOD,
-            BIGFOOD,
-            TELEPORT,
-            DEBUG
-        }
-
+        #region Map dictionnary color
         /// <summary>
         /// The color of the square that will be created
         /// </summary>
@@ -72,42 +152,40 @@ namespace PacMan
             { MapMeaning.FOOD, Color.Black },
             { MapMeaning.BIGFOOD, Color.Black },
             { MapMeaning.TELEPORT, Color.Yellow },
-            { MapMeaning.DEBUG, Color.Red }
         };
+        #endregion Map dictionnary color
 
-        /// <summary>
-        /// The map of the game
-        /// TODO : PUT IN JSON ?
-        /// </summary>
-        public static MapMeaning[,] GameMap = new MapMeaning[MapHeight, MapWidth]
-        {
-            {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-            {MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,},
-            {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.TELEPORT,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.FOOD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.FOOD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.TELEPORT,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-            {MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,},
-            {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-            {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-        };
-
+        #region Foodmap class
         /// <summary>
         /// Create the map for the food
         /// </summary>
-        public static class FoodMap
+        public class FoodMap
         {
-            public static Food[,] tab_foods = new Food[MapWidth, MapHeight];
+            #region Attributs
+            /// <summary>
+            /// Attributs
+            /// </summary>
+            private Food[,] _foodsMap;
+            #endregion Attributs
+
+            #region proprieties
+            /// <summary>
+            /// Propriety
+            /// </summary>
+            public Food[,] FoodsMap { get => _foodsMap; }
+            #endregion proprieties
+
+            #region constructor
+            /// <summary>
+            /// Default constructor
+            /// </summary>
+            public FoodMap(int height, int width)
+            {
+                this._foodsMap = new Food[height, width];
+            }
+            #endregion constructor
+
         }
+        #endregion Foodmap class
     }
 }

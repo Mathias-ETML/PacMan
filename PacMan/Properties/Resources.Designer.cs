@@ -59,5 +59,21 @@ namespace PacMan.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à {
+        ///  &quot;map&quot;: [
+        ///    {
+        ///      &quot;width&quot;: 19,
+        ///      &quot;height&quot;: 19,
+        ///      &quot;data&quot;: [
+        ///          [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot; ],
+        ///          [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.FOOD&quot;, &quot;MapMe [le reste de la chaîne a été tronqué]&quot;;.
+        /// </summary>
+        internal static string map {
+            get {
+                return ResourceManager.GetString("map", resourceCulture);
+            }
+        }
     }
 }

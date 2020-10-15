@@ -39,7 +39,7 @@
             this.pan_PanMap.Name = "pan_PanMap";
             this.pan_PanMap.Size = new System.Drawing.Size(760, 760);
             this.pan_PanMap.TabIndex = 0;
-            this.pan_PanMap.Paint += new System.Windows.Forms.PaintEventHandler(this.pan_PanGame_Paint);
+            this.pan_PanMap.Paint += new System.Windows.Forms.PaintEventHandler(this.FoodMapDisposition);
             // 
             // label1
             // 
