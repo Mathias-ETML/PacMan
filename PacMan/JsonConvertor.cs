@@ -5,6 +5,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+/*
+ * TODO : GENERAL ALGO
+ * TODO : what happen if there is more after the json data, like a " sous-section "
+ * TODO : TRY PARSE WITH .
+ * TODO : OBJECT IN OBJECT
+ */
 namespace PacMan
 {
     /// <summary>
@@ -91,16 +97,84 @@ namespace PacMan
         {
             if (_rawData.Contains($"\"{elementName}\""))
             {
-                JsonNode jsonNode = new JsonNode(_rawData, $"\"{elementName}\"");
-                this._jsonNodes.Add(jsonNode);
-                this._jsonNodesNamesDico.Add(elementName, jsonNode);
-                this._jsonNodesNamesList.Add(elementName);
-                return true;
+                // we remove the {} at the start and the end
+                if(CleanedData(_rawData.Substring(1, _rawData.Length - 1), elementName, out string cleanedData))
+                {
+                    JsonNode jsonNode = new JsonNode(cleanedData, $"\"{elementName}\"");
+                    this._jsonNodes.Add(jsonNode);
+                    this._jsonNodesNamesDico.Add(elementName, jsonNode);
+                    this._jsonNodesNamesList.Add(elementName);
+                    return true;
+                }
+                else
+                {
+                    throw new ArgumentNullException("Error in JSON convertor :" +
+                        $"object \"{elementName}\" was found but not returned proprely, a null was returned");
+                }
+
             }
 
             return false;
         }
         #endregion storing the data
+
+        #region data processing
+        /// <summary>
+        /// Clean the data do you have a more friends string of char
+        /// </summary>
+        /// <param name="data">raw data</param>
+        /// <param name="id">the name ob the object</param>
+        /// <param name="buffer">the output</param>
+        /// <returns>if the retrive was sucessfull</returns>
+        private bool CleanedData(string data, string id, out string buffer)
+        {
+            #region var
+            data = data.Replace(Environment.NewLine, string.Empty);
+            data = data.Replace(" ", "");
+            int start = data.IndexOf(id) - 1;
+
+            int startCurlyBracketCount = 0;
+            int endCurlyBracketCount = 0;
+
+            int startBracketCount = 0;
+            int endBracketCount = 0;
+            #endregion var
+
+            #region algo
+            for (int i = start; i < data.Length; i++)
+            {
+                switch (data[i])
+                {
+                    case '[':
+                        startBracketCount++;
+                        break;
+                    case ']':
+                        endBracketCount++;
+
+                        // here we know that a object will always have the same number of opened and closed bracket
+                        if (startBracketCount == endBracketCount && startCurlyBracketCount == endCurlyBracketCount)
+                        {
+                            buffer = data.Substring(start, i - start + 1);
+                            return true;
+                        }
+                        break;
+                    case '{':
+                        startCurlyBracketCount++;
+                        break;
+                    case '}':
+                        endCurlyBracketCount++;
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            #endregion algo
+
+            buffer = null;
+            return false;
+        }
+        #endregion data processing
 
         #region getting the data
         public bool TryGetElementByName(string name, out JsonNode jsonNode)
@@ -126,9 +200,7 @@ namespace PacMan
             /// Attributs
             /// </summary>
             private string _rawData;
-            private string _cleanedData;
-            private string _processedData;
-            private string _id;
+            private string _name;
             private List<JsonData> _jsonDatas;
             private Dictionary<string, JsonData> _jsonDataNamesDico;
             private List<string> _jsonDataNamesList;
@@ -139,6 +211,7 @@ namespace PacMan
             /// Propriety
             /// </summary>
             public List<string> JsonDataNamesDico { get => _jsonDataNamesList; }
+            public string Name { get => _name; }
             #endregion Propriety
 
             #region Constructor
@@ -147,10 +220,10 @@ namespace PacMan
             /// </summary>
             /// <param name="data">the data of the original json file</param>
             /// <param name="id">the id of the object</param>
-            public JsonNode(string data, string id)
+            public JsonNode(string data, string name)
             {
                 this._rawData = data;
-                this._id = id;
+                this._name = name;
                 this._jsonDatas = new List<JsonData>();
                 this._jsonDataNamesDico = new Dictionary<string, JsonData>();
                 this._jsonDataNamesList = new List<string>();
@@ -184,124 +257,132 @@ namespace PacMan
             private void ProcessData()
             {
                 #region var
-                int objectNameStart = 0;
-                int objectNameEnd = 0;
-                int objectDataStart = 0;
-                int objectDataEnd = 0;
+                string buffer = _rawData.Substring(_name.Length, _rawData.Length - _name.Length);
+                buffer = buffer.Substring(3, buffer.Length - 5);
+
+                int nameStart = 0;
+                int nameEnd = 0;
+                int dataStart = 0;
+                int dataEnd = 0;
                 bool isArray = false;
                 bool is2DArray = false;
+                bool isObject = false;
+
+                int startCurlyBracketCount = 0;
+                int endCurlyBracketCount = 0;
+
+                int startBracketCount = 0;
+                int endBracketCount = 0;
                 #endregion var
 
-                #region cleaning the data
-                _cleanedData = _rawData;
-                _cleanedData = _cleanedData.Replace(System.Environment.NewLine, string.Empty);
-                _cleanedData = _cleanedData.Replace(" ", String.Empty);
-                _processedData = _cleanedData.Split(new string[1] { _id }, StringSplitOptions.None)[1];
-
-                // we start at 2 beacause the first char will be a ':' and a '['
-                // and we remove the end because it the delimitation of the object
-                _processedData = _processedData.Substring(2, _processedData.Length - 4);
-                #endregion cleaning the data
-
-                #region algo, but its a mess
-                // yes it's bad
-                for (int i = 0; i < _processedData.Length; i++)
+                #region algo
+                for (int i = 0; i < buffer.Length; i++)
                 {
-                    switch (_processedData[i])
+                    switch (buffer[i])
                     {
-                        case ':':
-                            // here we know its the start of the data
-                            if (objectNameEnd != 0)
-                            {
-                                objectDataStart = i + 1;
-                            }
-                            break;
-
-                        case '"':
-                            // check if we don't start to watch a new object, so we create a new node with data
-                            if (objectNameEnd != 0 && !isArray)
-                            {
-                                objectDataEnd = i - 1;
-
-                                // creating the data a place to hold it
-                                JsonData jsonData = new JsonData(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart), _processedData.Substring(objectDataStart, objectDataEnd - objectDataStart));
-                                _jsonDatas.Add(jsonData);
-                                _jsonDataNamesDico.Add(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart), jsonData);
-                                _jsonDataNamesList.Add(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart));
-
-                                // we set the start here because we checked the start of an object
-                                objectNameStart = i + 1;
-
-                                // reset
-                                objectNameEnd = 0;
-                                objectDataStart = 0;
-                                objectDataEnd = 0;
-                                isArray = false;
-                                is2DArray = false;
-                                break;
-                            }
-
-                            // check if we are checking an object name
-                            if (!isArray)
-                            {
-                                if (objectNameStart != 0)
-                                {
-                                    objectNameEnd = i;
-                                }
-                                else
-                                {
-                                    objectNameStart = i + 1;
-                                }
-                            }
-
-                            break;
-
                         case '[':
-                            // check if we are in the array of the object
-                            if (!isArray && _processedData[i - 1] == ':')
+                            startBracketCount++;
+
+                            // checking if we are in an array
+                            if (dataStart != 0 && !isArray && buffer[i - 1] != '[')
                             {
                                 isArray = true;
-                                //objectNameStart = i;
+                                dataStart = i;
+                            }
+                            else if (buffer[i - 1] == '[' && isArray && !is2DArray)
+                            {
+                                is2DArray = true;
+                                char[] v = buffer.ToCharArray();
+                                dataStart = i - 1;
+                            }
 
-                                if (_processedData[i + 1] == '[')
+                            break;
+                        case ']':
+
+                            // ending the array section
+                            if (isArray && !is2DArray)
+                            {
+                                dataEnd = i;
+
+                                // creating the data holder
+                                CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart),
+                                    ConvertDataToArray(buffer.Substring(dataStart, dataEnd - dataStart)));
+
+                                // reset
+                                nameStart = 0;
+                                nameEnd = 0;
+                                dataStart = 0;
+                                dataEnd = 0;
+                                isArray = false;
+                                
+                            }
+                            else if (is2DArray && buffer[i - 1] == ']')
+                            {
+                                // we need the ]]
+                                dataEnd = i + 1;
+
+                                // creating the data holder
+                                CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart),
+                                    ConvertDataToMultidimentionalArray(buffer.Substring(dataStart, dataEnd - dataStart)));
+
+                                // reset
+                                nameStart = 0;
+                                nameEnd = 0;
+                                dataStart = 0;
+                                dataEnd = 0;
+                                isArray = false;
+                                is2DArray = false;
+                                
+                            }
+                            endBracketCount++;
+                            break;
+                        case '{':
+                            startCurlyBracketCount++;
+                            break;
+                        case '}':
+                            endCurlyBracketCount++;
+                            break;
+
+                        case '\"':
+
+                            // getting the object name
+                            if (nameEnd == 0)
+                            {
+                                if (nameStart == 0)
                                 {
-                                    is2DArray = true;
+                                    nameStart = i + 1;
                                 }
+                                // geting the object end
+                                else if (buffer[i + 1] == ':' && nameStart != 0)
+                                {
+                                    nameEnd = i;
+                                }
+                            }
+                            // else we are in data with string
+
+                            break;
+
+                        case ':':
+
+                            // getting the start of the data
+                            if (nameEnd != 0)
+                            {
+                                dataStart = i + 1;
                             }
                             break;
 
-                        case ']':
-                            // check for the 1d array if it ended
-                            if (_processedData[i + 1] != ',' && isArray && !is2DArray)
+                        case ',':
+
+                            // here we are in the case that there is more data, and it's separated with an ','
+                            if (dataStart != 0 && !isArray)
                             {
-                                // the + 1 is because we are right now at the end of the array, so we need to take the next char
-                                objectDataEnd = i + 1;
-                                isArray = false;
+                                dataEnd = i;
 
-                                string name = _processedData.Substring(objectNameStart, objectNameEnd - objectNameStart);
-                                string[] data = ConvertDataToArray(_processedData.Substring(objectDataStart, objectDataEnd - objectDataStart));
-
-                                JsonData jsonData = new JsonData(name, data);
-                                _jsonDatas.Add(jsonData);
-                                _jsonDataNamesDico.Add(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart), jsonData);
-                                _jsonDataNamesList.Add(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart));
-                            }
-
-                            // check for the 2d array if it ended
-                            if (_processedData[i + 1] == ']' && is2DArray)
-                            {
-                                // the + 2 is because we are right now at the end of the array, so we need to take the next char and the next one
-                                objectDataEnd = i + 2;
-                                isArray = false;
-                                is2DArray = false;
-
-                                string name = _processedData.Substring(objectNameStart, objectNameEnd - objectNameStart);
-                                string[,] data = ConvertDataToMultidimentionalArray(_processedData.Substring(objectDataStart, objectDataEnd - objectDataStart));
-
-                                JsonData jsonData = new JsonData(name, data);
-                                _jsonDatas.Add(jsonData);
-                                _jsonDataNamesDico.Add(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart), jsonData);
-                                _jsonDataNamesList.Add(_processedData.Substring(objectNameStart, objectNameEnd - objectNameStart));
+                                CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart, dataEnd - dataStart));
+                                nameStart = 0;
+                                nameEnd = 0;
+                                dataStart = 0;
+                                dataEnd = 0;
                             }
                             break;
                         
@@ -309,8 +390,57 @@ namespace PacMan
                             break;
                     }
                 }
-                #endregion algo, but its a mess
+
+                // here we know that we started to create an object but we did not finished it
+                if (nameStart != 0 && nameEnd != 0 && dataStart != 0)
+                {
+                    CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart, buffer.Length - dataStart));
+                }
+                #endregion algo
             }
+
+            /// <summary>
+            /// Create the data holder
+            /// </summary>
+            /// <param name="name">the object name</param>
+            /// <param name="data">the object data</param>
+            private void CreateDataHolder(string name, string data)
+            {
+                // creating the data holder
+                JsonData jsonData = new JsonData(name, data);
+                _jsonDatas.Add(jsonData);
+                _jsonDataNamesDico.Add(name, jsonData);
+                _jsonDataNamesList.Add(name);
+            }
+
+            /// <summary>
+            /// Create the data holder
+            /// </summary>
+            /// <param name="name">the object name</param>
+            /// <param name="data">the object data</param>
+            private void CreateDataHolder(string name, string[] data)
+            {
+                // creating the data holder
+                JsonData jsonData = new JsonData(name, data);
+                _jsonDatas.Add(jsonData);
+                _jsonDataNamesDico.Add(name, jsonData);
+                _jsonDataNamesList.Add(name);
+            }
+
+            /// <summary>
+            /// Create the data holder
+            /// </summary>
+            /// <param name="name">the object name</param>
+            /// <param name="data">the object data</param>
+            private void CreateDataHolder(string name, string[,] data)
+            {
+                // creating the data holder
+                JsonData jsonData = new JsonData(name, data);
+                _jsonDatas.Add(jsonData);
+                _jsonDataNamesDico.Add(name, jsonData);
+                _jsonDataNamesList.Add(name);
+            }
+
 
             /// <summary>
             /// Convert a json array to string array
@@ -382,6 +512,11 @@ namespace PacMan
                 /// </summary>
                 private string _name;
                 private Information _data;
+
+                // sous-section
+                private List<JsonData> _jsonDatas;
+                private Dictionary<string, JsonData> _jsonDataNamesDico;
+                private List<string> _jsonDataNamesList;
                 #endregion Attributs
 
                 #region Proprieties
@@ -440,6 +575,7 @@ namespace PacMan
                     private string _data;
                     private string[] _array;
                     private string[,] _multiArray;
+                    private int _rank;
                     private System.Type _type;
                     #endregion Attributs
 
@@ -448,7 +584,8 @@ namespace PacMan
                     /// Proprieties
                     /// </summary>
                     public System.Type Type { get => _type; }
-                    public bool IsArray { get => _array != null; }
+                    public bool IsArray { get => _rank != -1; }
+                    public int Rank { get => _rank; }
                     #endregion Proprieties
 
                     #region Type casting
@@ -474,34 +611,29 @@ namespace PacMan
                     /// Implicit cast for float type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator float(Information data) => float.Parse(data._data);
+                    public static implicit operator float(Information data) => float.Parse(data._data, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol);
 
                     /// <summary>
                     /// Implicit cast for double type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator double(Information data) => double.Parse(data._data);
+                    public static implicit operator double(Information data) => double.Parse(data._data, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol);
 
                     /// <summary>
                     /// Implicit cast for decimal type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator decimal(Information data) => decimal.Parse(data._data);
+                    public static implicit operator decimal(Information data) => decimal.Parse(data._data, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol);
 
                     /// <summary>
                     /// Implicit cast for strings
                     /// </summary>
                     /// <param name="data">the data</param>
                     public static implicit operator string(Information data) => data._data;
+
                     #endregion Type casting
 
                     #region Type array casting
-                    /// <summary>
-                    /// Implicit cast for arrays
-                    /// </summary>
-                    /// <param name="data">the data</param>
-                    //public static implicit operator Array[](Information data) => data._array;
-
                     /// <summary>
                     /// Implicit cast for int type
                     /// </summary>
@@ -524,73 +656,72 @@ namespace PacMan
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator float[] (Information data) => Array.ConvertAll<string, float>(data._array, item => float.Parse(item));
+                    public static implicit operator float[] (Information data) => Array.ConvertAll<string, float>(data._array, item => float.Parse(item, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol));
 
                     /// <summary>
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator double[] (Information data) => Array.ConvertAll<string, double>(data._array, item => double.Parse(item));
+                    public static implicit operator double[] (Information data) => Array.ConvertAll<string, double>(data._array, item => double.Parse(item, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol));
 
                     /// <summary>
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator decimal[] (Information data) => Array.ConvertAll<string, decimal>(data._array, item => decimal.Parse(item));
+                    public static implicit operator decimal[] (Information data) => Array.ConvertAll<string, decimal>(data._array, item => decimal.Parse(item, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol));
+
+                    /// <summary>
+                    /// Implicit cast for strings
+                    /// </summary>
+                    /// <param name="data">the data</param>
+                    public static implicit operator string[](Information data) => data._array;
 
                     #endregion Type array casting
 
-                    #region Type 2darray casting
-                    /*
-                    /// <summary>
-                    /// Implicit cast for arrays
-                    /// </summary>
-                    /// <param name="data">the data</param>
-                    public static implicit operator Array[](Information data) => data._array;
-
+                    #region Type 2d array casting
                     /// <summary>
                     /// Implicit cast for int type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator int[] (Information data) => Array.ConvertAll<string, int>(data._array, item => int.Parse(item));
+                    public static implicit operator int[,] (Information data) => DataTransformation.ChangeTypeOfMultidimentionalArray<int>(data._multiArray);
 
+                    
                     /// <summary>
                     /// Implicit cast for long type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator long[] (Information data) => Array.ConvertAll<string, long>(data._array, item => long.Parse(item));
+                    public static implicit operator long[,] (Information data) => DataTransformation.ChangeTypeOfMultidimentionalArray<long>(data._multiArray);
 
                     /// <summary>
                     /// Implicit cast for ulong type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator ulong[] (Information data) => Array.ConvertAll<string, ulong>(data._array, item => ulong.Parse(item));
+                    public static implicit operator ulong[,] (Information data) => DataTransformation.ChangeTypeOfMultidimentionalArray<ulong>(data._multiArray);
 
                     /// <summary>
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator float[] (Information data) => Array.ConvertAll<string, float>(data._array, item => float.Parse(item));
+                    public static implicit operator float[,] (Information data) => DataTransformation.ChangeTypeOfMultidimentionalArray<float>(data._multiArray);
 
                     /// <summary>
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator double[] (Information data) => Array.ConvertAll<string, double>(data._array, item => double.Parse(item));
-                    
+                    public static implicit operator double[,] (Information data) => DataTransformation.ChangeTypeOfMultidimentionalArray<double>(data._multiArray);
+
                     /// <summary>
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
-                    public static implicit operator decimal[] (Information data) => Array.ConvertAll<string, decimal>(data._array, item => decimal.Parse(item));
-                    */
+                    public static implicit operator decimal[,] (Information data) => DataTransformation.ChangeTypeOfMultidimentionalArray<decimal>(data._multiArray);
 
                     /// <summary>
                     /// Implicit cast for flont type
                     /// </summary>
                     /// <param name="data">the data</param>
                     public static implicit operator string[,] (Information data) => data._multiArray;
-                    #endregion Type 2darray casting
+                    #endregion Type 2d array casting
 
                     #region constructors
                     /// <summary>
@@ -600,6 +731,7 @@ namespace PacMan
                     public Information(string data)
                     {
                         this._data = data;
+                        this._rank = -1;
                         SetType();
                     }
 
@@ -611,6 +743,7 @@ namespace PacMan
                     {
                         this._array = array;
                         this._data = array[0].ToString();
+                        this._rank = 0;
                         SetType();
 
                         // reset because we got the type
@@ -625,6 +758,7 @@ namespace PacMan
                     {
                         this._multiArray = array;
                         this._data = array[0,0].ToString();
+                        this._rank = 1;
                         SetType();
 
                         // reset because we got the type
@@ -651,7 +785,7 @@ namespace PacMan
                         }
 
                         // don't forget you need "," to work, not a point "."
-                        // we put here the foat check because its the most common type after the int ( i think )
+                        // we put here the float check because its the most common type after the int ( i think )
                         if (float.TryParse(_data, out _))
                         {
                             this._type = typeof(float);

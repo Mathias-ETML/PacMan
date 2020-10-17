@@ -35,6 +35,23 @@ namespace PacMan
         /// </summary>
         public frm_FormPrincipal()
         {
+            // new json convertor made by me, its bad BUT it work and i am not a god
+            JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map);
+
+            // getting the data
+            if (jsonConvertor.TryCreateElementByName("test2"))
+            {
+                if (jsonConvertor.TryGetElementByName("test2", out JsonConvertor.JsonNode jsonNode))
+                {
+                    if (jsonNode.TryGetElementByName("test21", out JsonConvertor.JsonNode.JsonData jsonData1))
+                    {
+                        string v1 = jsonData1.Data;
+
+                        double v2 = jsonData1.Data;
+                    }
+                }
+            }
+
             InitializeComponent();
             OnStart();
         }

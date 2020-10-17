@@ -22,6 +22,7 @@ using static PacMan.Variables;
  * TODO : SET NORMAL SPEED FOR FINAL TESTING
  * TODO : OPTIMISE FOR BAD GRAPHICAL COMPUTER ( like intel with intergrated chips )
  * TODO : REGIONS
+ * TODO : COMPLETE THE MAKING OF THE JSON CONVERTOR ( algo )
  * PS : FIX THEM MATHAIS PLEASE
  */ 
 

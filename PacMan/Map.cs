@@ -7,10 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static PacMan.Variables;
 
-/*
- * TODO : put map in json
- * TODO : REGIONS
- */
 namespace PacMan
 {
     public class Map
@@ -89,34 +85,8 @@ namespace PacMan
                 if (jsonNode2.TryGetElementByName("data", out JsonConvertor.JsonNode.JsonData jsonData))
                 {
                     this._gameMap = DataTransformation.MultidimentionalStringArrayToEnum<MapMeaning>(jsonData.Data);
-                    //string[,] bru = jsonData.Data;
                 }
             }
-
-            /*
-            this._gameMap = new MapMeaning[19, 19]
-            {
-                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-                {MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,},
-                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.TELEPORT,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.FOOD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.FOOD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.TELEPORT,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-                {MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.EMPTY,MapMeaning.EMPTY,MapMeaning.EMPTY,},
-                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.ROAD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.BIGFOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.FOOD,MapMeaning.WALL,},
-                {MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,MapMeaning.WALL,},
-            };
-            */
         }
         #endregion constructor
 

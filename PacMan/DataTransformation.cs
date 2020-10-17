@@ -71,8 +71,10 @@ namespace PacMan
                 throw new ArgumentNullException("Array is empty");
             }
 
+            // buffer to hold the data
             Enum[,] buffer = new Enum[array.GetLength(0), array.GetLength(1)];
 
+            // transforming the strings into enums
             for (int y = 0; y < array.GetLength(0); y++)
             {
                 for (int x = 0; x < array.GetLength(1); x++)
@@ -92,6 +94,13 @@ namespace PacMan
         /// <returns>return the transformed string</returns>
         public static Enum StringToEnum<Enum>(string data)
         {
+            if (data == null)
+            {
+                throw new ArgumentNullException("Data is null");
+            }
+
+            // here we only want the left part of the enum
+            // example : Type.Error, we only want the " error "
             if (data.Contains("."))
             {
                 data = data.Split('.')[1];
@@ -100,5 +109,58 @@ namespace PacMan
             return (Enum)System.Enum.Parse(typeof(Enum), data);
         }
         #endregion 2d string array to 2d enum array
+
+        #region 2d array type changing
+        /// <summary>
+        /// change the type of the object
+        /// </summary>
+        /// <typeparam name="T">the type you want</typeparam>
+        /// <param name="array">the array</param>
+        /// <returns>the changed array</returns>
+        public static T[,] ChangeTypeOfMultidimentionalArray<T>(object[,] array)
+        {
+            if (array == null)
+            {
+                throw new ArgumentNullException("Array is null");
+            }
+
+            if (array.Length == 0)
+            {
+                throw new ArgumentNullException("Array is empty");
+            }
+
+            //buffer to hold  the data
+            T[,] buffer = new T[array.GetLength(0), array.GetLength(1)];
+
+            // converting the data
+            for (int y = 0; y < array.GetLength(0); y++)
+            {
+                for (int x = 0; x < array.GetLength(1); x++)
+                {
+                    buffer[y, x] = ChangeType<T>(array[y, x]);
+                }
+            }
+
+            return buffer;
+        }
+        #endregion 2d array type changing
+
+        #region Misc
+        /// <summary>
+        /// Change de type of an object
+        /// </summary>
+        /// <typeparam name="T">the type you want</typeparam>
+        /// <param name="data">the data</param>
+        /// <returns>the changed object</returns>
+        public static T ChangeType<T>(object data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException("Data is null");
+            }
+
+            return (T)Convert.ChangeType(data, typeof(T));
+        }
+        #endregion Misc
     }
 }
