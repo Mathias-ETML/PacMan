@@ -6,10 +6,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 /*
- * TODO : GENERAL ALGO
- * TODO : what happen if there is more after the json data, like a " sous-section "
  * TODO : TRY PARSE WITH .
- * TODO : OBJECT IN OBJECT
+ * TODO : fix string
+ * TODO : \char to check that its a char that we are checking and not a \char
  */
 namespace PacMan
 {
@@ -20,20 +19,30 @@ namespace PacMan
     {
         /* Exemple of how to use the json convertor
          ** 
-         * JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map);
-         * jsonConvertor.TryCreateElementByName("map");
+         *  JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map);
+         *  jsonConvertor.TryCreateElementByName("map");
          *
-         * if (jsonConvertor.TryGetElementByName("map", out JsonConvertor.JsonNode jsonNode))
-         * {
-         *     if (jsonNode.TryGetElementByName("height", out JsonConvertor.JsonNode.JsonData jsonData))
-         *     {
-         *         string name = jsonData.Name;
-         *         
-         *         // implicit cast
-         *         decimal data = jsonData.Data;
-         *     }
-         * }
+         *  if (jsonConvertor.TryGetElementByName("map", out JsonConvertor.JsonNode jsonNode))
+         *  {
+         *      if (jsonNode.TryGetElementByName("height", out JsonConvertor.JsonNode.JsonData jsonData))
+         *      {
+         *          string name = jsonData.Name;
+         *          
+         *          // implicit cast
+         *          decimal data = jsonData.Data;
+         *      }
+         *  }
          * 
+         *  if (jsonConvertor.TryCreateElementByName("test2", out JsonConvertor.JsonNode jsonNode))
+         *  {
+         *      if (jsonNode.TryGetElementByName("test22", out JsonConvertor.JsonNode jsonNodeInNode))
+         *      {
+         *          if (jsonNodeInNode.TryGetElementByName("test221", out JsonConvertor.JsonNode.JsonData dataInJsonNodeInJsonNode))
+         *          {
+         *              string v = dataInJsonNodeInJsonNode.Data;
+         *          }
+         *      }
+         *  }
         */
 
         #region attributs
@@ -116,6 +125,50 @@ namespace PacMan
 
             return false;
         }
+
+        /// <summary>
+        /// This will create a new "node", how i like to call it, of data, it will take evrything from the id of the json file
+        /// </summary>
+        /// <param name="elementName">the id of the object</param>
+        /// <returns>if the node was created</returns>
+        public bool TryCreateElementByName(string elementName, out JsonNode jsonNode)
+        {
+            if (_rawData.Contains($"\"{elementName}\""))
+            {
+                // we remove the {} at the start and the end
+                if (CleanedData(_rawData.Substring(1, _rawData.Length - 1), elementName, out string cleanedData))
+                {
+                    jsonNode = new JsonNode(cleanedData, $"\"{elementName}\"");
+                    this._jsonNodes.Add(jsonNode);
+                    this._jsonNodesNamesDico.Add(elementName, jsonNode);
+                    this._jsonNodesNamesList.Add(elementName);
+                    return true;
+                }
+                else
+                {
+                    throw new ArgumentNullException("Error in JSON convertor :" +
+                        $"object \"{elementName}\" was found but not returned proprely, a null was returned");
+                }
+
+            }
+
+            jsonNode = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Private method to create a node whithout checking the data
+        /// This is usefull if you allready cleaned the data
+        /// </summary>
+        /// <param name="name">the name</param>
+        /// <param name="data">the cleaned data</param>
+        private void CreateElement(string name, string data)
+        {
+            JsonNode jsonNode = new JsonNode(name, $"\"{data}\"");
+            this._jsonNodes.Add(jsonNode);
+            this._jsonNodesNamesDico.Add(data, jsonNode);
+            this._jsonNodesNamesList.Add(data);
+        }
         #endregion storing the data
 
         #region data processing
@@ -130,7 +183,30 @@ namespace PacMan
         {
             #region var
             data = data.Replace(Environment.NewLine, string.Empty);
-            data = data.Replace(" ", "");
+            //data = data.Replace("\t", string.Empty);
+
+            // this is ok
+            while (data.Contains("  "))
+                data = data.Replace("  ", " ");
+
+            // this is bad, yes, but its secure, maybe replace with regex
+            // ps : i know nothing about how to build a regex
+            data = data.Replace("[ ", "[");
+            data = data.Replace("] ", "]");
+            data = data.Replace("{ ", "{");
+            data = data.Replace("} ", "}");
+
+            data = data.Replace(" [", "[");
+            data = data.Replace(" ]", "]");
+            data = data.Replace(" {", "{");
+            data = data.Replace(" }", "}");
+
+            data = data.Replace(", ", ",");
+            data = data.Replace(": ", ":");
+
+            data = data.Replace(" ,", ",");
+            data = data.Replace(" :", ":");
+
             int start = data.IndexOf(id) - 1;
 
             int startCurlyBracketCount = 0;
@@ -204,6 +280,9 @@ namespace PacMan
             private List<JsonData> _jsonDatas;
             private Dictionary<string, JsonData> _jsonDataNamesDico;
             private List<string> _jsonDataNamesList;
+
+            private Dictionary<string, JsonNode> _jsonNodesNamesDico;
+            private List<string> _jsonNodesNamesList;
             #endregion Attributs
 
             #region Propriety
@@ -228,6 +307,9 @@ namespace PacMan
                 this._jsonDataNamesDico = new Dictionary<string, JsonData>();
                 this._jsonDataNamesList = new List<string>();
 
+                this._jsonNodesNamesDico = new Dictionary<string, JsonNode>();
+                this._jsonNodesNamesList = new List<string>();
+
                 ProcessData();
             }
             #endregion Constructor
@@ -248,6 +330,22 @@ namespace PacMan
 
                 return false;
             }
+
+            /// <summary>
+            /// here we try to get the data
+            /// </summary>
+            /// <param name="name">the name of the object</param>
+            /// <param name="jsonData">out the object</param>
+            /// <returns>if the object was found</returns>
+            public bool TryGetElementByName(string name, out JsonNode jsonNode)
+            {
+                if (_jsonNodesNamesDico.TryGetValue(name, out jsonNode))
+                {
+                    return true;
+                }
+
+                return false;
+            }
             #endregion getting the data
 
             #region processing data
@@ -257,7 +355,11 @@ namespace PacMan
             private void ProcessData()
             {
                 #region var
+
+                // removing the name
                 string buffer = _rawData.Substring(_name.Length, _rawData.Length - _name.Length);
+
+                // removing the :[{}] that make this an object
                 buffer = buffer.Substring(3, buffer.Length - 5);
 
                 int nameStart = 0;
@@ -283,106 +385,163 @@ namespace PacMan
                         case '[':
                             startBracketCount++;
 
-                            // checking if we are in an array
-                            if (dataStart != 0 && !isArray && buffer[i - 1] != '[')
+                            // here we are checking that we are not marking an object as an array, that will be unfortunate
+                            if (buffer[i + 1] != '{')
                             {
-                                isArray = true;
-                                dataStart = i;
+                                // checking if we are in an array
+                                if (dataStart != 0 && !isArray && buffer[i - 1] != '[')
+                                {
+                                    isArray = true;
+                                    dataStart = i;
+                                }
+                                else if (buffer[i - 1] == '[' && isArray && !is2DArray)
+                                {
+                                    is2DArray = true;
+                                    dataStart = i - 1;
+                                }
                             }
-                            else if (buffer[i - 1] == '[' && isArray && !is2DArray)
+                            else
                             {
-                                is2DArray = true;
-                                char[] v = buffer.ToCharArray();
-                                dataStart = i - 1;
+                                isObject = true;
+
+                                // we need the "" at the start of the object
+                                // well, that's how i made my code
+                                nameStart -= 1;
+
+                                // and we reset the brackets
+                                // here we put at 1 because we went on them once
+                                startBracketCount = 1;
+
+                                startCurlyBracketCount = 0;
+                                endBracketCount = 0;
+                                endCurlyBracketCount = 0;
                             }
 
                             break;
                         case ']':
-
-                            // ending the array section
-                            if (isArray && !is2DArray)
-                            {
-                                dataEnd = i;
-
-                                // creating the data holder
-                                CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart),
-                                    ConvertDataToArray(buffer.Substring(dataStart, dataEnd - dataStart)));
-
-                                // reset
-                                nameStart = 0;
-                                nameEnd = 0;
-                                dataStart = 0;
-                                dataEnd = 0;
-                                isArray = false;
-                                
-                            }
-                            else if (is2DArray && buffer[i - 1] == ']')
-                            {
-                                // we need the ]]
-                                dataEnd = i + 1;
-
-                                // creating the data holder
-                                CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart),
-                                    ConvertDataToMultidimentionalArray(buffer.Substring(dataStart, dataEnd - dataStart)));
-
-                                // reset
-                                nameStart = 0;
-                                nameEnd = 0;
-                                dataStart = 0;
-                                dataEnd = 0;
-                                isArray = false;
-                                is2DArray = false;
-                                
-                            }
                             endBracketCount++;
+
+                            if (!isObject)
+                            {
+                                // ending the array section
+                                if (isArray && !is2DArray)
+                                {
+                                    dataEnd = i;
+
+                                    // creating the data holder
+                                    CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart),
+                                        ConvertDataToArray(buffer.Substring(dataStart, dataEnd - dataStart)));
+
+                                    // reset
+                                    nameStart = 0;
+                                    nameEnd = 0;
+                                    dataStart = 0;
+                                    dataEnd = 0;
+                                    isArray = false;
+
+                                }
+                                else if (is2DArray && buffer[i - 1] == ']')
+                                {
+                                    // we need the ]]
+                                    dataEnd = i + 1;
+
+                                    // creating the data holder
+                                    CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart),
+                                        ConvertDataToMultidimentionalArray(buffer.Substring(dataStart, dataEnd - dataStart)));
+
+                                    // reset
+                                    nameStart = 0;
+                                    nameEnd = 0;
+                                    dataStart = 0;
+                                    dataEnd = 0;
+                                    isArray = false;
+                                    is2DArray = false;
+                                }
+                            }
+                            else if (startBracketCount == endBracketCount && startCurlyBracketCount == endCurlyBracketCount)
+                            {
+                                // the +1 is because we need the ] at the end of the object and the "
+                                JsonNode jsonNode = new JsonNode(buffer.Substring(nameStart, i - nameStart + 1), buffer.Substring(nameStart, nameEnd - nameStart + 1));
+
+                                _jsonNodesNamesList.Add(buffer.Substring(nameStart + 1, nameEnd - nameStart - 1));
+                                _jsonNodesNamesDico.Add(buffer.Substring(nameStart + 1, nameEnd - nameStart - 1), jsonNode);
+
+                                CreateObjectHolder(buffer.Substring(nameStart + 1, nameEnd - nameStart - 1), jsonNode);
+
+                                nameStart = 0;
+                                nameEnd = 0;
+                                dataStart = 0;
+                                isObject = false;
+                            }
                             break;
+
                         case '{':
                             startCurlyBracketCount++;
                             break;
+
                         case '}':
                             endCurlyBracketCount++;
                             break;
 
                         case '\"':
 
-                            // getting the object name
-                            if (nameEnd == 0)
+                            if (!isObject)
                             {
-                                if (nameStart == 0)
+                                // getting the object name
+                                if (nameEnd == 0)
                                 {
-                                    nameStart = i + 1;
+                                    if (nameStart == 0)
+                                    {
+                                        nameStart = i + 1;
+                                    }
+                                    // geting the object end
+                                    else if (buffer[i + 1] == ':' && nameStart != 0)
+                                    {
+                                        nameEnd = i;
+                                    }
                                 }
-                                // geting the object end
-                                else if (buffer[i + 1] == ':' && nameStart != 0)
-                                {
-                                    nameEnd = i;
-                                }
+                                // else we are in data with string
                             }
-                            // else we are in data with string
 
                             break;
 
                         case ':':
 
-                            // getting the start of the data
-                            if (nameEnd != 0)
+                            if (!isObject)
                             {
-                                dataStart = i + 1;
+                                // getting the start of the data
+                                if (nameEnd != 0)
+                                {
+                                    dataStart = i + 1;
+                                }
                             }
                             break;
 
                         case ',':
 
-                            // here we are in the case that there is more data, and it's separated with an ','
-                            if (dataStart != 0 && !isArray)
+                            if (!isObject)
                             {
-                                dataEnd = i;
+                                // here we are in the case that there is more data, and it's separated with an ','
+                                if (dataStart != 0 && !isArray)
+                                {
+                                    dataEnd = i;
 
-                                CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart, dataEnd - dataStart));
-                                nameStart = 0;
-                                nameEnd = 0;
-                                dataStart = 0;
-                                dataEnd = 0;
+                                    // checking if it's a data type string
+                                    if (buffer[dataStart] == '\"')
+                                    {
+                                        // removing the ""
+                                        CreateDataHolder(buffer.Substring(nameStart + 1, nameEnd - nameStart - 2), buffer.Substring(dataStart, dataEnd - dataStart));
+                                    }
+                                    else
+                                    {
+                                        CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart, dataEnd - dataStart));
+                                    }
+
+                                    nameStart = 0;
+                                    nameEnd = 0;
+                                    dataStart = 0;
+                                    dataEnd = 0;
+                                }
                             }
                             break;
                         
@@ -394,7 +553,15 @@ namespace PacMan
                 // here we know that we started to create an object but we did not finished it
                 if (nameStart != 0 && nameEnd != 0 && dataStart != 0)
                 {
-                    CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart, buffer.Length - dataStart));
+                    if (buffer[dataStart] == '\"')
+                    {
+                        // removing the ""
+                        CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart + 1, buffer.Length - dataStart - 2));
+                    }
+                    else
+                    {
+                        CreateDataHolder(buffer.Substring(nameStart, nameEnd - nameStart), buffer.Substring(dataStart, buffer.Length - dataStart));
+                    }
                 }
                 #endregion algo
             }
@@ -408,9 +575,9 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, data);
-                _jsonDatas.Add(jsonData);
-                _jsonDataNamesDico.Add(name, jsonData);
-                _jsonDataNamesList.Add(name);
+                this._jsonDatas.Add(jsonData);
+                this._jsonDataNamesDico.Add(name, jsonData);
+                this._jsonDataNamesList.Add(name);
             }
 
             /// <summary>
@@ -422,9 +589,9 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, data);
-                _jsonDatas.Add(jsonData);
-                _jsonDataNamesDico.Add(name, jsonData);
-                _jsonDataNamesList.Add(name);
+                this._jsonDatas.Add(jsonData);
+                this._jsonDataNamesDico.Add(name, jsonData);
+                this._jsonDataNamesList.Add(name);
             }
 
             /// <summary>
@@ -436,9 +603,23 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, data);
-                _jsonDatas.Add(jsonData);
-                _jsonDataNamesDico.Add(name, jsonData);
-                _jsonDataNamesList.Add(name);
+                this._jsonDatas.Add(jsonData);
+                this._jsonDataNamesDico.Add(name, jsonData);
+                this._jsonDataNamesList.Add(name);
+            }
+
+            /// <summary>
+            /// Create the data holder
+            /// </summary>
+            /// <param name="name">the object name</param>
+            /// <param name="data">the object data</param>
+            private void CreateObjectHolder(string name, JsonNode json)
+            {
+                // creating the data holder
+                JsonData jsonData = new JsonData(name, json);
+                this._jsonDatas.Add(jsonData);
+                this._jsonDataNamesDico.Add(name, jsonData);
+                this._jsonDataNamesList.Add(name);
             }
 
 
@@ -512,11 +693,6 @@ namespace PacMan
                 /// </summary>
                 private string _name;
                 private Information _data;
-
-                // sous-section
-                private List<JsonData> _jsonDatas;
-                private Dictionary<string, JsonData> _jsonDataNamesDico;
-                private List<string> _jsonDataNamesList;
                 #endregion Attributs
 
                 #region Proprieties
@@ -525,6 +701,7 @@ namespace PacMan
                 /// </summary>
                 public string Name { get => _name; }
                 public Information Data { get => _data; }
+                public JsonNode JsonNode { get => _data.JsonNode; }
                 #endregion Proprieties
 
                 #region constructors
@@ -560,6 +737,17 @@ namespace PacMan
                     this._name = name;
                     this._data = new Information(data);
                 }
+
+                /// <summary>
+                /// Custom constructor
+                /// </summary>
+                /// <param name="name">the name of the id</param>
+                /// <param name="data">the data of the id</param>
+                public JsonData(string name, JsonNode data)
+                {
+                    this._name = name;
+                    this._data = new Information(data);
+                }
                 #endregion constructors
 
                 #region Information class, hold the data
@@ -575,6 +763,7 @@ namespace PacMan
                     private string _data;
                     private string[] _array;
                     private string[,] _multiArray;
+                    private JsonNode _jsonNode;
                     private int _rank;
                     private System.Type _type;
                     #endregion Attributs
@@ -586,6 +775,7 @@ namespace PacMan
                     public System.Type Type { get => _type; }
                     public bool IsArray { get => _rank != -1; }
                     public int Rank { get => _rank; }
+                    public JsonNode JsonNode { get => _jsonNode; }
                     #endregion Proprieties
 
                     #region Type casting
@@ -763,6 +953,17 @@ namespace PacMan
 
                         // reset because we got the type
                         this._data = null;
+                    }
+
+                    /// <summary>
+                    /// custom constructor
+                    /// </summary>
+                    /// <param name="data">the raw data</param>
+                    public Information(JsonNode jsonNode)
+                    {
+                        this._jsonNode = jsonNode;
+                        this._rank = -1;
+                        this._type = typeof(JsonNode);
                     }
                     #endregion constructors
 
