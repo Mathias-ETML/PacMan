@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace PacMan
 {
@@ -68,7 +69,12 @@ namespace PacMan
 
             if (array.Length == 0)
             {
-                throw new ArgumentNullException("Array is empty");
+                throw new Exception("Array is empty");
+            }
+
+            if (array.Rank == 1)
+            {
+                throw new Exception("Array is not multidimentional");
             }
 
             // buffer to hold the data
@@ -85,9 +91,11 @@ namespace PacMan
 
             return buffer;
         }
+        #endregion 2d string array to 2d enum array
 
+        #region enum casting
         /// <summary>
-        /// Transfomr a string into an enum
+        /// Transform a string into an enum
         /// </summary>
         /// <typeparam name="Enum">the enum you want to transform</typeparam>
         /// <param name="data">the string</param>
@@ -99,6 +107,11 @@ namespace PacMan
                 throw new ArgumentNullException("Data is null");
             }
 
+            if (data.Length == 0)
+            {
+                throw new ArgumentNullException("Data is empty");
+            }
+
             // here we only want the left part of the enum
             // example : Type.Error, we only want the " error "
             if (data.Contains("."))
@@ -108,7 +121,44 @@ namespace PacMan
 
             return (Enum)System.Enum.Parse(typeof(Enum), data);
         }
-        #endregion 2d string array to 2d enum array
+        #endregion enum casting
+
+        #region array type changing
+        /// <summary>
+        /// Change the type of your array
+        /// </summary>
+        /// <typeparam name="T">the type you want</typeparam>
+        /// <param name="array">the array</param>
+        /// <returns>the array with a brand new type</returns>
+        public static T[] ChangeTypeOfArray<T>(object[] array)
+        {
+            if (array == null)
+            {
+                throw new ArgumentNullException("Array is null");
+            }
+
+            if (array.Length == 0)
+            {
+                throw new Exception("Array is empty");
+            }
+
+            if (array.Rank == 2)
+            {
+                throw new Exception("Array is multidimentional");
+            }
+
+            //buffer to hold  the data
+            T[] buffer = new T[array.Length];
+
+            // converting the data
+            for (int x = 0; x < array.Length; x++)
+            {
+                buffer[x] = ChangeType<T>(array[x]);
+            }
+
+            return buffer;
+        }
+        #endregion array type changing
 
         #region 2d array type changing
         /// <summary>
@@ -126,7 +176,12 @@ namespace PacMan
 
             if (array.Length == 0)
             {
-                throw new ArgumentNullException("Array is empty");
+                throw new Exception("Array is empty");
+            }
+
+            if (array.Rank == 1)
+            {
+                throw new Exception("Array is not multidimentional");
             }
 
             //buffer to hold  the data
@@ -159,7 +214,7 @@ namespace PacMan
                 throw new ArgumentNullException("Data is null");
             }
 
-            return (T)Convert.ChangeType(data, typeof(T));
+            return (T)Convert.ChangeType(data, typeof(T), CultureInfo.InvariantCulture);
         }
         #endregion Misc
     }

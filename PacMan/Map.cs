@@ -56,20 +56,32 @@ namespace PacMan
             // new json convertor made by me, its bad BUT it work and i am not a god
             JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map);
 
-            // getting the data
-            if (jsonConvertor.TryCreateElementByName("map"))
+            if (jsonConvertor.TryCreateElementByName("test1", out JsonConvertor.JsonNode test))
             {
-                if (jsonConvertor.TryGetElementByName("map", out JsonConvertor.JsonNode jsonNode))
-                {
-                    if (jsonNode.TryGetElementByName("height", out JsonConvertor.JsonNode.JsonData jsonData1))
-                    {
-                        this._mapHeight = jsonData1.Data;
-                    }
+                float v = test.GetDataByName<float>("test13");
+                double[] vs = test.GetDataArrayByName<double>("test11");
+                decimal[,] vss = test.GetDataMultidimentionalArrayByName<decimal>("test12");
+            }
 
-                    if (jsonNode.TryGetElementByName("width", out JsonConvertor.JsonNode.JsonData jsonData2))
-                    {
-                        this._mapWidth = jsonData2.Data;
-                    }
+            // getting the data
+            if (jsonConvertor.TryCreateElementByName("map", out JsonConvertor.JsonNode jsonNode))
+            {
+                if (jsonNode.TryGetDataByName("height", out JsonConvertor.JsonNode.JsonData jsonData1))
+                {
+                    this._mapHeight = jsonData1.Data;
+                }
+                else
+                {
+                    throw new Exception("Height was not found");
+                }
+
+                if (jsonNode.TryGetDataByName("width", out JsonConvertor.JsonNode.JsonData jsonData2))
+                {
+                    this._mapWidth = jsonData2.Data;
+                }
+                else
+                {
+                    throw new Exception("Width was not found");
                 }
             }
 
@@ -80,12 +92,13 @@ namespace PacMan
             this._foodMap = new FoodMap(_mapHeight, _mapWidth);
 
             // getting the map data
-            if (jsonConvertor.TryGetElementByName("map", out JsonConvertor.JsonNode jsonNode2))
+            if (jsonNode.TryGetDataByName("data", out JsonConvertor.JsonNode.JsonData jsonData))
             {
-                if (jsonNode2.TryGetElementByName("data", out JsonConvertor.JsonNode.JsonData jsonData))
-                {
-                    this._gameMap = DataTransformation.MultidimentionalStringArrayToEnum<MapMeaning>(jsonData.Data);
-                }
+                this._gameMap = DataTransformation.MultidimentionalStringArrayToEnum<MapMeaning>(jsonData.Data);
+            }
+            else
+            {
+                throw new Exception("Map was not created");
             }
         }
         #endregion constructor

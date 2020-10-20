@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 /*
- * TODO : TRY PARSE WITH .
- * TODO : fix string
  * TODO : \char to check that its a char that we are checking and not a \char
+ * TODO : IDisposable
+ * TODO : Automatic data processing ( hard )
  */
 namespace PacMan
 {
+    #region JsonConvertor class
     /// <summary>
     /// JsonConvertor class
     /// </summary>
-    public class JsonConvertor
+    public class JsonConvertor : IDisposable
     {
         /* Exemple of how to use the json convertor
          ** 
@@ -43,7 +45,13 @@ namespace PacMan
          *          }
          *      }
          *  }
-        */
+         *  if (jsonConvertor.TryCreateElementByName("test1", out JsonConvertor.JsonNode test))
+         *  {
+         *      float v = test.GetDataByName<float>("test13");
+         *      double[] vs = test.GetDataArrayByName<double>("test11");
+         *      decimal[,] vss = test.GetDataMultidimentionalArrayByName<decimal>("test12");
+         *  }
+         */
 
         #region attributs
         /// <summary>
@@ -53,6 +61,7 @@ namespace PacMan
         private List<JsonNode> _jsonNodes;
         private List<string> _jsonNodesNamesList;
         private Dictionary<string, JsonNode> _jsonNodesNamesDico;
+        private bool _disposedValue = false; // Pour détecter les appels redondants
         #endregion attributs
 
         #region Propriety
@@ -268,8 +277,9 @@ namespace PacMan
         /// <summary>
         /// Json node class
         /// PS : i don't know how it's called
+        /// PS : i don't know how it's called
         /// </summary>
-        public class JsonNode
+        public class JsonNode : IDisposable
         {
             #region Attributs
             /// <summary>
@@ -289,7 +299,7 @@ namespace PacMan
             /// <summary>
             /// Propriety
             /// </summary>
-            public List<string> JsonDataNamesDico { get => _jsonDataNamesList; }
+            public List<string> JsonDataNamesList { get => _jsonDataNamesList; }
             public string Name { get => _name; }
             #endregion Propriety
 
@@ -315,13 +325,15 @@ namespace PacMan
             #endregion Constructor
 
             #region getting the data
+
+            #region region JsonData output
             /// <summary>
             /// here we try to get the data
             /// </summary>
             /// <param name="name">the name of the object</param>
             /// <param name="jsonData">out the object</param>
             /// <returns>if the object was found</returns>
-            public bool TryGetElementByName(string name, out JsonData jsonData)
+            public bool TryGetDataByName(string name, out JsonData jsonData)
             {
                 if (_jsonDataNamesDico.TryGetValue(name, out jsonData))
                 {
@@ -336,8 +348,82 @@ namespace PacMan
             /// </summary>
             /// <param name="name">the name of the object</param>
             /// <param name="jsonData">out the object</param>
+            /// <returns>if the object was found, else throw a null excpetion</returns>
+            public JsonData GetDataByName(string name)
+            {
+                if (_jsonDataNamesDico.TryGetValue(name, out JsonData jsonData))
+                {
+                    return jsonData;
+                }
+                else
+                {
+                    throw new ArgumentNullException("The data was not found");   
+                }
+            }
+
+            /// <summary>
+            /// here we try to get the data with the type you want
+            /// </summary>
+            /// <param name="name">the name of the object</param>
+            /// <param name="jsonData">out the object</param>
+            /// <returns>if the object was found, else throw a null excpetion</returns>
+            public T GetDataByName<T>(string name)
+            {
+                if (_jsonDataNamesDico.TryGetValue(name, out JsonData jsonData))
+                {
+                    return DataTransformation.ChangeType<T>(jsonData.Data);
+                }
+                else
+                {
+                    throw new ArgumentNullException("The data was not found");
+                }
+            }
+
+            /// <summary>
+            /// here we try to get the data of the array
+            /// </summary>
+            /// <param name="name">the name of the object</param>
+            /// <param name="jsonData">out the object</param>
+            /// <returns>if the object was found, else throw a null excpetion</returns>
+            public T[] GetDataArrayByName<T>(string name)
+            {
+                if (_jsonDataNamesDico.TryGetValue(name, out JsonData jsonData))
+                {
+                    return DataTransformation.ChangeTypeOfArray<T>(jsonData.Data);
+                }
+                else
+                {
+                    throw new ArgumentNullException("The data was not found");
+                }
+            }
+
+            /// <summary>
+            /// here we try to get the data of the multidimentional array
+            /// </summary>
+            /// <param name="name">the name of the object</param>
+            /// <param name="jsonData">out the object</param>
+            /// <returns>if the object was found, else throw a null excpetion</returns>
+            public T[,] GetDataMultidimentionalArrayByName<T>(string name)
+            {
+                if (_jsonDataNamesDico.TryGetValue(name, out JsonData jsonData))
+                {
+                    return DataTransformation.ChangeTypeOfMultidimentionalArray<T>(jsonData.Data);
+                }
+                else
+                {
+                    throw new ArgumentNullException("The data was not found");
+                }
+            }
+            #endregion region JsonData output
+
+            #region JsonNode data output
+            /// <summary>
+            /// here we try to get the data
+            /// </summary>
+            /// <param name="name">the name of the object</param>
+            /// <param name="jsonData">out the object</param>
             /// <returns>if the object was found</returns>
-            public bool TryGetElementByName(string name, out JsonNode jsonNode)
+            public bool TryGetObjectByName(string name, out JsonNode jsonNode)
             {
                 if (_jsonNodesNamesDico.TryGetValue(name, out jsonNode))
                 {
@@ -346,6 +432,26 @@ namespace PacMan
 
                 return false;
             }
+
+            /// <summary>
+            /// here we try to get the data
+            /// </summary>
+            /// <param name="name">the name of the object</param>
+            /// <param name="jsonData">out the object</param>
+            /// <returns>if the object was found, else throw a null excpetion</returns>
+            public JsonNode GetObjectByName(string name)
+            {
+                if (_jsonNodesNamesDico.TryGetValue(name, out JsonNode jsonNode))
+                {
+                    return jsonNode;
+                }
+                else
+                {
+                    throw new ArgumentNullException("The object was not found");
+                }
+            }
+            #endregion JsonNode data output
+
             #endregion getting the data
 
             #region processing data
@@ -468,6 +574,7 @@ namespace PacMan
 
                                 CreateObjectHolder(buffer.Substring(nameStart + 1, nameEnd - nameStart - 1), jsonNode);
 
+                                // reset
                                 nameStart = 0;
                                 nameEnd = 0;
                                 dataStart = 0;
@@ -566,6 +673,7 @@ namespace PacMan
                 #endregion algo
             }
 
+            #region data creation
             /// <summary>
             /// Create the data holder
             /// </summary>
@@ -621,8 +729,9 @@ namespace PacMan
                 this._jsonDataNamesDico.Add(name, jsonData);
                 this._jsonDataNamesList.Add(name);
             }
+            #endregion data creation
 
-
+            #region data manipulation
             /// <summary>
             /// Convert a json array to string array
             /// </summary>
@@ -638,7 +747,7 @@ namespace PacMan
 
                 // removing the ""
                 rawData = rawData.Replace("\"", "");
-
+                
                 // putting data into the array
                 buffer = rawData.Split(',');
 
@@ -678,6 +787,7 @@ namespace PacMan
 
                 return DataTransformation.ListToMultidimentionalArray<string>(buffer);
             }
+            #endregion data manipulation
 
             #endregion processing data
 
@@ -693,6 +803,7 @@ namespace PacMan
                 /// </summary>
                 private string _name;
                 private Information _data;
+                private static NumberFormatInfo _numberInfoParseNumberWithPoint = CultureInfo.InvariantCulture.NumberFormat;
                 #endregion Attributs
 
                 #region Proprieties
@@ -754,7 +865,7 @@ namespace PacMan
                 /// <summary>
                 /// Information class, hold the data of the object
                 /// </summary>
-                public class Information
+                public class Information : IConvertible, IDisposable
                 {
                     #region Attributs
                     /// <summary>
@@ -985,9 +1096,8 @@ namespace PacMan
                             return;
                         }
 
-                        // don't forget you need "," to work, not a point "."
                         // we put here the float check because its the most common type after the int ( i think )
-                        if (float.TryParse(_data, out _))
+                        if (float.TryParse(_data, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol, null, out _))
                         {
                             this._type = typeof(float);
                             return;
@@ -1005,15 +1115,13 @@ namespace PacMan
                             return;
                         }
 
-                        // don't forget you need "," to work, not a point "."
-                        if (double.TryParse(_data, out _))
+                        if (double.TryParse(_data, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol, null, out _))
                         {
                             this._type = typeof(double);
                             return;
                         }
 
-                        // don't forget you need "," to work, not a point "."
-                        if (decimal.TryParse(_data, out _))
+                        if (decimal.TryParse(_data, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.AllowCurrencySymbol, null, out _))
                         {
                             this._type = typeof(decimal);
                             return;
@@ -1022,13 +1130,206 @@ namespace PacMan
                         // else this is the default type of data
                         this._type = typeof(string);
                     }
-
                     #endregion Type setting
+
+                    #region IConvertible Support
+                    public TypeCode GetTypeCode()
+                    {
+                        return _data.GetTypeCode();
+                    }
+
+                    public bool ToBoolean(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToBoolean(provider);
+                    }
+
+                    public char ToChar(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToChar(provider);
+                    }
+
+                    public sbyte ToSByte(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToSByte(provider);
+                    }
+
+                    public byte ToByte(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToByte(provider);
+                    }
+
+                    public short ToInt16(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToInt16(provider);
+                    }
+
+                    public ushort ToUInt16(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToUInt16(provider);
+                    }
+
+                    public int ToInt32(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToInt32(provider);
+                    }
+
+                    public uint ToUInt32(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToUInt32(provider);
+                    }
+
+                    public long ToInt64(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToInt64(provider);
+                    }
+
+                    public ulong ToUInt64(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToUInt64(provider);
+                    }
+
+                    public float ToSingle(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToSingle(provider);
+                    }
+
+                    public double ToDouble(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToDouble(provider);
+                    }
+
+                    public decimal ToDecimal(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToDecimal(provider);
+                    }
+
+                    public DateTime ToDateTime(IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToDateTime(provider);
+                    }
+
+                    public string ToString(IFormatProvider provider)
+                    {
+                        return _data.ToString(provider);
+                    }
+
+                    public object ToType(Type conversionType, IFormatProvider provider)
+                    {
+                        return ((IConvertible)_data).ToType(conversionType, provider);
+                    }
+                    #endregion IConvertible Support
+
+                    #region IDisposable Support
+                    private bool disposedValue = false; // Pour détecter les appels redondants
+
+                    protected virtual void Dispose(bool disposing)
+                    {
+                        if (!disposedValue)
+                        {
+                            if (disposing)
+                            {
+                                // TODO: supprimer l'état managé (objets managés).
+                            }
+
+                            // TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.
+                            // TODO: définir les champs de grande taille avec la valeur Null.
+
+                            disposedValue = true;
+                        }
+                    }
+
+                    // TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.
+                    // ~Information() {
+                    //   // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
+                    //   Dispose(false);
+                    // }
+
+                    // Ce code est ajouté pour implémenter correctement le modèle supprimable.
+                    void IDisposable.Dispose()
+                    {
+                        // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
+                        Dispose(true);
+                        // TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.
+                        // GC.SuppressFinalize(this);
+                    }
+                    #endregion IDisposable Support
                 }
                 #endregion Information class, hold the data
             }
+
+            #region IDisposable Support
+            private bool disposedValue = false; // Pour détecter les appels redondants
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        // TODO: supprimer l'état managé (objets managés).
+                    }
+
+                    // TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.
+                    // TODO: définir les champs de grande taille avec la valeur Null.
+
+                    disposedValue = true;
+                }
+            }
+
+            // TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.
+            // ~JsonNode() {
+            //   // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
+            //   Dispose(false);
+            // }
+
+            // Ce code est ajouté pour implémenter correctement le modèle supprimable.
+            void IDisposable.Dispose()
+            {
+                // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
+                Dispose(true);
+                // TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.
+                // GC.SuppressFinalize(this);
+            }
+            #endregion IDisposable Support
+
             #endregion Json data class
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: supprimer l'état managé (objets managés).
+                }
+
+                // TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.
+                // TODO: définir les champs de grande taille avec la valeur Null.
+
+                _disposedValue = true;
+            }
+        }
+
+        // TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.
+        // ~JsonConvertor() {
+        //   // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
+        //   Dispose(false);
+        // }
+
+        // Ce code est ajouté pour implémenter correctement le modèle supprimable.
+        void IDisposable.Dispose()
+        {
+            // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
+            Dispose(true);
+            // TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion IDisposable Support
+
         #endregion JsonNode class
     }
+    #endregion JsonConvertor class
 }
