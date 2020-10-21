@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 /*
+ * TODO : GetDataByName with enum
  * TODO : \char to check that its a char that we are checking and not a \char
  * TODO : IDisposable
  * TODO : Automatic data processing ( hard )
@@ -58,10 +59,10 @@ namespace PacMan
         /// Attributs
         /// </summary>
         private string _rawData;
-        private List<JsonNode> _jsonNodes;
+        private List<JsonNode> _jsonNodesList;
         private List<string> _jsonNodesNamesList;
         private Dictionary<string, JsonNode> _jsonNodesNamesDico;
-        private bool _disposedValue = false; // Pour détecter les appels redondants
+        private bool _disposedValue = false;
         #endregion attributs
 
         #region Propriety
@@ -79,7 +80,7 @@ namespace PacMan
         public JsonConvertor(string jsonFileData)
         {
             this._rawData = jsonFileData;
-            this._jsonNodes = new List<JsonNode>();
+            this._jsonNodesList = new List<JsonNode>();
             this._jsonNodesNamesList = new List<string>();
             this._jsonNodesNamesDico = new Dictionary<string, JsonNode>();
         }
@@ -119,7 +120,7 @@ namespace PacMan
                 if(CleanedData(_rawData.Substring(1, _rawData.Length - 1), elementName, out string cleanedData))
                 {
                     JsonNode jsonNode = new JsonNode(cleanedData, $"\"{elementName}\"");
-                    this._jsonNodes.Add(jsonNode);
+                    this._jsonNodesList.Add(jsonNode);
                     this._jsonNodesNamesDico.Add(elementName, jsonNode);
                     this._jsonNodesNamesList.Add(elementName);
                     return true;
@@ -148,7 +149,7 @@ namespace PacMan
                 if (CleanedData(_rawData.Substring(1, _rawData.Length - 1), elementName, out string cleanedData))
                 {
                     jsonNode = new JsonNode(cleanedData, $"\"{elementName}\"");
-                    this._jsonNodes.Add(jsonNode);
+                    this._jsonNodesList.Add(jsonNode);
                     this._jsonNodesNamesDico.Add(elementName, jsonNode);
                     this._jsonNodesNamesList.Add(elementName);
                     return true;
@@ -174,7 +175,7 @@ namespace PacMan
         private void CreateElement(string name, string data)
         {
             JsonNode jsonNode = new JsonNode(name, $"\"{data}\"");
-            this._jsonNodes.Add(jsonNode);
+            this._jsonNodesList.Add(jsonNode);
             this._jsonNodesNamesDico.Add(data, jsonNode);
             this._jsonNodesNamesList.Add(data);
         }
@@ -287,12 +288,13 @@ namespace PacMan
             /// </summary>
             private string _rawData;
             private string _name;
-            private List<JsonData> _jsonDatas;
+            private List<JsonData> _jsonDatasList;
             private Dictionary<string, JsonData> _jsonDataNamesDico;
             private List<string> _jsonDataNamesList;
 
             private Dictionary<string, JsonNode> _jsonNodesNamesDico;
             private List<string> _jsonNodesNamesList;
+            private bool _disposedValue = false; // Pour détecter les appels redondants
             #endregion Attributs
 
             #region Propriety
@@ -300,6 +302,7 @@ namespace PacMan
             /// Propriety
             /// </summary>
             public List<string> JsonDataNamesList { get => _jsonDataNamesList; }
+            public List<string> JsonNodeNamesList { get => _jsonNodesNamesList; }
             public string Name { get => _name; }
             #endregion Propriety
 
@@ -313,7 +316,7 @@ namespace PacMan
             {
                 this._rawData = data;
                 this._name = name;
-                this._jsonDatas = new List<JsonData>();
+                this._jsonDatasList = new List<JsonData>();
                 this._jsonDataNamesDico = new Dictionary<string, JsonData>();
                 this._jsonDataNamesList = new List<string>();
 
@@ -683,7 +686,7 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, data);
-                this._jsonDatas.Add(jsonData);
+                this._jsonDatasList.Add(jsonData);
                 this._jsonDataNamesDico.Add(name, jsonData);
                 this._jsonDataNamesList.Add(name);
             }
@@ -697,7 +700,7 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, data);
-                this._jsonDatas.Add(jsonData);
+                this._jsonDatasList.Add(jsonData);
                 this._jsonDataNamesDico.Add(name, jsonData);
                 this._jsonDataNamesList.Add(name);
             }
@@ -711,7 +714,7 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, data);
-                this._jsonDatas.Add(jsonData);
+                this._jsonDatasList.Add(jsonData);
                 this._jsonDataNamesDico.Add(name, jsonData);
                 this._jsonDataNamesList.Add(name);
             }
@@ -725,7 +728,7 @@ namespace PacMan
             {
                 // creating the data holder
                 JsonData jsonData = new JsonData(name, json);
-                this._jsonDatas.Add(jsonData);
+                this._jsonDatasList.Add(jsonData);
                 this._jsonDataNamesDico.Add(name, jsonData);
                 this._jsonDataNamesList.Add(name);
             }
@@ -795,7 +798,7 @@ namespace PacMan
             /// <summary>
             /// Json data class
             /// </summary>
-            public class JsonData
+            public class JsonData : IDisposable
             {
                 #region Attributs
                 /// <summary>
@@ -804,6 +807,8 @@ namespace PacMan
                 private string _name;
                 private Information _data;
                 private static NumberFormatInfo _numberInfoParseNumberWithPoint = CultureInfo.InvariantCulture.NumberFormat;
+                private bool _disposedValue = false;
+
                 #endregion Attributs
 
                 #region Proprieties
@@ -877,6 +882,7 @@ namespace PacMan
                     private JsonNode _jsonNode;
                     private int _rank;
                     private System.Type _type;
+                    private bool _disposedValue = false;
                     #endregion Attributs
 
                     #region Proprieties
@@ -1220,116 +1226,156 @@ namespace PacMan
                     #endregion IConvertible Support
 
                     #region IDisposable Support
-                    private bool disposedValue = false; // Pour détecter les appels redondants
 
+                    /// <summary>
+                    /// Dispose support
+                    /// Free memory
+                    /// </summary>
+                    /// <param name="disposing">if you want to dispose managed ressources</param>
                     protected virtual void Dispose(bool disposing)
                     {
-                        if (!disposedValue)
+                        if (!_disposedValue)
                         {
                             if (disposing)
                             {
-                                // TODO: supprimer l'état managé (objets managés).
+                                this._data = null;
+                                this._array = null;
+                                this._multiArray = null;
+                                this._jsonNode.Dispose();
+                                this._rank = int.MinValue;
+                                this._type = null;
                             }
 
-                            // TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.
-                            // TODO: définir les champs de grande taille avec la valeur Null.
-
-                            disposedValue = true;
+                            _disposedValue = true;
                         }
                     }
 
-                    // TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.
-                    // ~Information() {
-                    //   // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
-                    //   Dispose(false);
-                    // }
-
-                    // Ce code est ajouté pour implémenter correctement le modèle supprimable.
-                    void IDisposable.Dispose()
+                    /// <summary>
+                    /// Dispose support
+                    /// </summary>
+                    public void Dispose()
                     {
-                        // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
                         Dispose(true);
-                        // TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.
-                        // GC.SuppressFinalize(this);
+                        GC.SuppressFinalize(this);
                     }
                     #endregion IDisposable Support
                 }
                 #endregion Information class, hold the data
+
+                #region IDisposable Support
+
+                /// <summary>
+                /// Dispose support
+                /// Free memory
+                /// </summary>
+                /// <param name="disposing">dispose non managed objects</param>
+                protected virtual void Dispose(bool disposing)
+                {
+                    if (!_disposedValue)
+                    {
+                        if (disposing)
+                        {
+                            this._name = null;
+                            this._data.Dispose();
+                            _numberInfoParseNumberWithPoint = null;
+                        }
+
+                        _disposedValue = true;
+                    }
+                }
+
+                /// <summary>
+                /// Dispose support
+                /// </summary>
+                public void Dispose()
+                {
+                    Dispose(true);
+                    GC.SuppressFinalize(this);
+                }
+                #endregion IDisposable Support
             }
+            #endregion Json data class
 
             #region IDisposable Support
-            private bool disposedValue = false; // Pour détecter les appels redondants
 
+            /// <summary>
+            /// Dispose support
+            /// Free memory !
+            /// </summary>
+            /// <param name="disposing">the non-mamanged objects</param>
             protected virtual void Dispose(bool disposing)
             {
-                if (!disposedValue)
+                if (!_disposedValue)
                 {
                     if (disposing)
                     {
-                        // TODO: supprimer l'état managé (objets managés).
+                        this._rawData = null;
+                        this._name = null;
+
+                        foreach (JsonData item in _jsonDatasList)
+                        {
+                            item.Dispose();
+                        }
+                        this._jsonDataNamesDico = null;
+                        this._jsonDataNamesList = null;
+
+                        this._jsonNodesNamesDico = null;
+                        this._jsonNodesNamesList = null;
                     }
 
-                    // TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.
-                    // TODO: définir les champs de grande taille avec la valeur Null.
-
-                    disposedValue = true;
+                    _disposedValue = true;
                 }
             }
 
-            // TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.
-            // ~JsonNode() {
-            //   // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
-            //   Dispose(false);
-            // }
-
-            // Ce code est ajouté pour implémenter correctement le modèle supprimable.
-            void IDisposable.Dispose()
+            /// <summary>
+            /// Dispose support
+            /// </summary>
+            public void Dispose()
             {
-                // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
                 Dispose(true);
-                // TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.
-                // GC.SuppressFinalize(this);
+                GC.SuppressFinalize(this);
             }
             #endregion IDisposable Support
-
-            #endregion Json data class
         }
+        #endregion JsonNode class
 
         #region IDisposable Support
 
+        /// <summary>
+        /// Dispose implement
+        /// Free memory
+        /// </summary>
+        /// <param name="disposing">the unmanaged ressources</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
                 if (disposing)
                 {
-                    // TODO: supprimer l'état managé (objets managés).
-                }
+                    foreach (JsonNode item in _jsonNodesList)
+                    {
+                        item.Dispose();
+                    }
 
-                // TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.
-                // TODO: définir les champs de grande taille avec la valeur Null.
+                    this._rawData = null;
+                    this._jsonNodesList = null;
+                    this._jsonNodesNamesDico = null;
+                    this._jsonNodesNamesList = null;
+                }
 
                 _disposedValue = true;
             }
         }
 
-        // TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.
-        // ~JsonConvertor() {
-        //   // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
-        //   Dispose(false);
-        // }
-
-        // Ce code est ajouté pour implémenter correctement le modèle supprimable.
-        void IDisposable.Dispose()
+        /// <summary>
+        /// Dispose implement
+        /// </summary>
+        public void Dispose()
         {
-            // Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.
             Dispose(true);
-            // TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.
-            // GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
         #endregion IDisposable Support
-
-        #endregion JsonNode class
     }
     #endregion JsonConvertor class
 }

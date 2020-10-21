@@ -66,23 +66,8 @@ namespace PacMan
             // getting the data
             if (jsonConvertor.TryCreateElementByName("map", out JsonConvertor.JsonNode jsonNode))
             {
-                if (jsonNode.TryGetDataByName("height", out JsonConvertor.JsonNode.JsonData jsonData1))
-                {
-                    this._mapHeight = jsonData1.Data;
-                }
-                else
-                {
-                    throw new Exception("Height was not found");
-                }
-
-                if (jsonNode.TryGetDataByName("width", out JsonConvertor.JsonNode.JsonData jsonData2))
-                {
-                    this._mapWidth = jsonData2.Data;
-                }
-                else
-                {
-                    throw new Exception("Width was not found");
-                }
+                this._mapHeight = jsonNode.GetDataByName<int>("height");
+                this._mapWidth = jsonNode.GetDataByName<int>("width");
             }
 
             // creating the map with the data
@@ -100,6 +85,8 @@ namespace PacMan
             {
                 throw new Exception("Map was not created");
             }
+
+            jsonNode.Dispose();
         }
         #endregion constructor
 
