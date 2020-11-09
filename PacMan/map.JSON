@@ -25,40 +25,5 @@
         [ "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL", "MapMeaning.WALL" ]
       ]
     }
-  ],
-
-  "test1": [
-    {
-      "test11": [ 15.65, 18.68 ],
-      "test12": [
-        [ 15.65, 18.68 ],
-        [ 25.65, 28.68 ]
-      ],
-      "test13": 357.65
-    }
-  ],
-
-  "test2": [
-    {
-      "test21": 15684.6588156897165256,
-      "test22": [
-        {
-          "test221": "you did it"
-        }
-      ],
-      "test23": 20
-    }
-  ],
-
-  "test3": [
-    {
-      "test31": "haha you did \"it"
-    }
-  ],
-
-  "test4": [
-    {
-      "test41": 42
-    }
   ]
 }

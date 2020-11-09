@@ -1,8 +1,19 @@
-﻿using System;
+﻿// ==++==
+// 
+//  Made by Mathias Rogey.
+//
+//  Published on https://github.com/Mathias-ETML/JsonConvertor
+//  with the GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007.
+//
+//  Source code must been available when the software is ditributed.
+// 
+// ==--==
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace PacMan
+namespace JsonFileConvertor
 {
     /// <summary>
     /// Data transformation class
@@ -53,6 +64,43 @@ namespace PacMan
         }
         #endregion list to 2d array
 
+        #region string array to enum array
+        /// <summary>
+        /// Transform and array of string into enums
+        /// </summary>
+        /// <typeparam name="Enum">the enum</typeparam>
+        /// <param name="array">the array</param>
+        /// <returns>the array of enum</returns>
+        public static Enum[] StringArrayToEnum<Enum>(string[] array)
+        {
+            if (array == null)
+            {
+                throw new ArgumentNullException("Array is null");
+            }
+
+            if (array.Length == 0)
+            {
+                throw new Exception("Array is empty");
+            }
+
+            if (array.Rank == 1)
+            {
+                throw new Exception("Array is not multidimentional");
+            }
+
+            // buffer to hold the data
+            Enum[] buffer = new Enum[array.Length];
+
+            // transforming the strings into enums
+            for (int x = 0; x < array.GetLength(1); x++)
+            {
+                buffer[x] = StringToEnum<Enum>(array[x]);
+            }
+
+            return buffer;
+        }
+        #endregion string array to enum array
+
         #region 2d string array to 2d enum array
         /// <summary>
         /// make an multi dimentional array of enum
@@ -60,7 +108,7 @@ namespace PacMan
         /// <typeparam name="Enum">the enum you want</typeparam>
         /// <param name="array">the string array</param>
         /// <returns>return an multi dimentional array of enum</returns>
-        public static Enum[,] MultidimentionalStringArrayToEnum<Enum>(string[,] array)
+        public static Enum[,] StringMultidimentionalArrayToEnum<Enum>(string[,] array)
         {
             if (array == null)
             {

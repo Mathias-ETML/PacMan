@@ -121,4 +121,16 @@
   <data name="map" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\map.JSON;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="pacman" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pacman.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pacman1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pacman1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pacman2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pacman2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pacman3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pacman3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

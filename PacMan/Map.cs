@@ -1,10 +1,8 @@
-﻿using System;
+﻿
+
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using JsonFileConvertor;
 using static PacMan.Variables;
 
 namespace PacMan
@@ -54,21 +52,16 @@ namespace PacMan
         public Map()
         {
             // new json convertor made by me, its bad BUT it work and i am not a god
-            JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map);
+            JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
 
-            if (jsonConvertor.TryCreateElementByName("test1", out JsonConvertor.JsonNode test))
-            {
-                float v = test.GetDataByName<float>("test13");
-                double[] vs = test.GetDataArrayByName<double>("test11");
-                decimal[,] vss = test.GetDataMultidimentionalArrayByName<decimal>("test12");
-            }
+            // getting the node because more simpler
+            JsonConvertor.JsonNode jsonNode = jsonConvertor.GetElementByName("map");
 
-            // getting the data
-            if (jsonConvertor.TryCreateElementByName("map", out JsonConvertor.JsonNode jsonNode))
-            {
-                this._mapHeight = jsonNode.GetDataByName<int>("height");
-                this._mapWidth = jsonNode.GetDataByName<int>("width");
-            }
+            // getting the height
+            this._mapHeight = jsonNode.GetDataByName<int>("height");
+
+            // getting the width
+            this._mapWidth = jsonNode.GetDataByName<int>("width");
 
             // creating the map with the data
             this._gameMap = new MapMeaning[_mapHeight, _mapWidth];
@@ -77,16 +70,10 @@ namespace PacMan
             this._foodMap = new FoodMap(_mapHeight, _mapWidth);
 
             // getting the map data
-            if (jsonNode.TryGetDataByName("data", out JsonConvertor.JsonNode.JsonData jsonData))
-            {
-                this._gameMap = DataTransformation.MultidimentionalStringArrayToEnum<MapMeaning>(jsonData.Data);
-            }
-            else
-            {
-                throw new Exception("Map was not created");
-            }
+            this._gameMap = jsonNode.GetDataEnumMultidimentionalArray<MapMeaning>("data");
 
-            jsonNode.Dispose();
+            // memory managment :)
+            jsonConvertor.Dispose();
         }
         #endregion constructor
 
@@ -142,7 +129,7 @@ namespace PacMan
             /// <summary>
             /// Propriety
             /// </summary>
-            public Food[,] FoodsMap { get => _foodsMap; }
+            public Food[,] FoodsMap { get => _foodsMap; set => _foodsMap = value; }
             #endregion proprieties
 
             #region constructor

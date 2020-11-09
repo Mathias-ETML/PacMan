@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using static PacMan.Variables;
 
@@ -17,12 +13,7 @@ namespace PacMan
 {
     public partial class Ghost : AIRegroupgment, IDisposable
     {
-        /*
-        YELLOW : 
-        BLUE : Random at each intersection
-        PINK : Scared, go to opposit of youself, but if you are in a radius of you, chase you for 5 sec max
-        RED : Chase you, try to go to the close way possible of you
-        */
+
         #region variables
         #region enum
         /// <summary>
@@ -145,6 +136,12 @@ namespace PacMan
     /// </summary>
     public class AIRegroupgment
     {
+        /*
+        YELLOW : He will chase after Pac-Man in Blinky's manner, but will wander off to his home corner when he gets too close.
+        BLUE : Random at each intersection
+        PINK : Scared, go to opposit of youself, but if you are in a radius of you, chase you for 5 sec max
+        RED : Chase you, try to go to the close way possible of you
+        */
         public class YellowAI : GhostAI
         {
             public override void OnUpdate()

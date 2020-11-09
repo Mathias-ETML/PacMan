@@ -19,10 +19,7 @@ using static PacMan.Variables;
  * TODO : OPTIMISATION OF CHECKING WHEN PACMAN MOVE 
  * TODO : EVENT HANDLER TAKING MEMORY NOT GOOD OH HELL NO
  * TODO : ANIMATION
- * TODO : SET NORMAL SPEED FOR FINAL TESTING
  * TODO : OPTIMISE FOR BAD GRAPHICAL COMPUTER ( like intel with intergrated chips )
- * TODO : REGIONS
- * TODO : COMPLETE THE MAKING OF THE JSON CONVERTOR ( algo )
  * PS : FIX THEM MATHAIS PLEASE
  */ 
 
@@ -40,13 +37,15 @@ namespace PacMan
         private Panel _body;
         private Map _map;
         private Graphics _pacManGraphics;
+        private int _pacManAnimationInterval = G_BYTETIMEBETWENGAMETICK * 2;
         private Timer _onAnimationUpdate;
+        private Color _pacManBodyColor = Color.Yellow;
         private Mouth.Position _lastAuthorizedDirection = Mouth.Position.North;
         private Mouth.Position _actualMouthDirection = Mouth.Position.North;
         private bool _disposed = false;
+        private bool _isPacManMouthOpen = true;
 #pragma warning disable CS0414
-        private bool _boolIsPacManMouthOpen = false;
-        private bool _boolCanPacManEatGhost = false;
+        private bool _canPacManEatGhost = false;
 #pragma warning restore CS0414
         private ulong _playerScore = 0;
         private static readonly sbyte _speedOfPacMan = 10; // in px
@@ -115,10 +114,12 @@ namespace PacMan
             // it work only because it's a event handler, you can't just use DrawPacManBody, you need the event handler
             this._body.Paint += CreatePacMan;
 
+            //Body.BackgroundImage = Properties.Resources.pacman;
+
             // create a vector for the mouvment of the pacman body
             this._deplacementPacMan = new Vector2(0, 0);
 
-            //StartPacManAnimation();
+            StartPacManAnimation();
         }
         #endregion custom construtor
 
@@ -140,9 +141,9 @@ namespace PacMan
         /// </summary>
         private void DrawPacManBody()
         {
-            _pacManGraphics.DrawEllipse(new Pen(Color.Yellow, 1), 0, 0, G_BYTESIZEOFSQUARE - 1, G_BYTESIZEOFSQUARE - 1);
+            _pacManGraphics.DrawEllipse(new Pen(_pacManBodyColor, 1), 0, 0, G_BYTESIZEOFSQUARE - 1, G_BYTESIZEOFSQUARE - 1);
 
-            _pacManGraphics.FillEllipse(new SolidBrush(Color.Yellow), 0, 0, G_BYTESIZEOFSQUARE - 1, G_BYTESIZEOFSQUARE - 1);
+            _pacManGraphics.FillEllipse(new SolidBrush(_pacManBodyColor), 0, 0, G_BYTESIZEOFSQUARE - 1, G_BYTESIZEOFSQUARE - 1);
         }
 
         /// <summary>
@@ -166,7 +167,7 @@ namespace PacMan
             {
                 _onAnimationUpdate = new Timer()
                 {
-                    Interval = G_BYTETIMEBETWENGAMETICK
+                    Interval = _pacManAnimationInterval
                 };
 
                 // add the method to the timer
@@ -186,7 +187,16 @@ namespace PacMan
         {
             if (_body != null)
             {
-
+                if (_isPacManMouthOpen)
+                {
+                    DrawPacManBody();
+                    _isPacManMouthOpen = false;
+                }
+                else
+                {
+                    DrawPacManMouth(_actualMouthDirection);
+                    _isPacManMouthOpen = true;
+                }
             }
         }
         #endregion PacMan animation

@@ -67,12 +67,52 @@ namespace PacMan.Properties {
         ///      &quot;width&quot;: 19,
         ///      &quot;height&quot;: 19,
         ///      &quot;data&quot;: [
-        ///          [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot; ],
-        ///          [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.FOOD&quot;, &quot;MapMe [le reste de la chaîne a été tronqué]&quot;;.
+        ///        [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot; ],
+        ///        [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.FOOD&quot;, &quot;MapMeanin [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         internal static string map {
             get {
                 return ResourceManager.GetString("map", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pacman {
+            get {
+                object obj = ResourceManager.GetObject("pacman", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pacman1 {
+            get {
+                object obj = ResourceManager.GetObject("pacman1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pacman2 {
+            get {
+                object obj = ResourceManager.GetObject("pacman2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pacman3 {
+            get {
+                object obj = ResourceManager.GetObject("pacman3", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }
