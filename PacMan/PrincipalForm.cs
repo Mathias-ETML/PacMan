@@ -60,8 +60,15 @@ namespace PacMan
             for (; G_numberOfPacMan < G_numberOfPlayer; G_numberOfPacMan++)
             {
                 //g_tab_pacMans[g_byteNumberOfPacMan] = new PacMan(680, 360);
-                G_pacMans[G_numberOfPacMan] = new PacMan(9 * G_BYTESIZEOFSQUARE, 15 * G_BYTESIZEOFSQUARE, _map);
+                G_pacMans[G_numberOfPacMan] = new PacMan(9 * G_BYTESIZEOFSQUARE, 15 * G_BYTESIZEOFSQUARE, _map, pan_PanMap.CreateGraphics());
                 pan_PanMap.Controls.Add(G_pacMans[G_numberOfPacMan].Body);
+            }
+
+            // init ghosts
+            for (; G_numberOfSpawnedGhost < G_NUMBEROFGHOST; G_numberOfSpawnedGhost++)
+            {
+                G_ghosts[G_numberOfSpawnedGhost] = new Ghost(40, 40, Ghost.Type.BLUE, pan_PanMap.CreateGraphics(), _map);
+                pan_PanMap.Controls.Add(G_ghosts[G_numberOfSpawnedGhost].Body);
             }
         }
         #endregion OnStart
@@ -74,30 +81,24 @@ namespace PacMan
         /// <param name="e"></param>
         private void OnUpdate(object sender, EventArgs e)
         {
-            if (G_pacMans[0].Move())
-            {
-                pan_PanMap.Paint += UpdateMapTeleportation;
-            }
+            G_pacMans[0].Move();
 
-            pan_PanMap.Paint += UpdateMap;
+            G_ghosts[0].Move();
+
+            //pan_PanMap.Paint += UpdateMap;
+            UpdateMap();
 
             label1.Text = G_pacMans[0].Body.Location.ToString();
+
+            label2.Text = G_ghosts[0].Body.Location.ToString();
         }
         #endregion main loop
 
         #region Map update
-        private void UpdateMap(object sender, PaintEventArgs e)
+        private void UpdateMap()
         {
-            G_pacMans[0].UpdateMap(sender, e);
-
-            ((Panel)sender).Paint -= UpdateMap;
-        }
-
-        private void UpdateMapTeleportation(object sender, PaintEventArgs e)
-        {
-            G_pacMans[0].UpdateTeleportation(sender, e);
-
-            ((Panel)sender).Paint -= UpdateMapTeleportation;
+            G_pacMans[0].UpdateMap();
+            G_ghosts[0].UpdateMap();
         }
         #endregion Map update
 

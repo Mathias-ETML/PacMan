@@ -69,10 +69,10 @@ namespace PacMan
         /// <param name="type">the type of food you want</param>
         /// <param name="x">c location</param>
         /// <param name="y">y location</param>
-        public void DrawFood(Graphics graphics, FoodMeaning type, int x, int y)
+        public static void DrawFood(Graphics graphics, FoodMeaning type, int x, int y)
         {
-            graphics.DrawEllipse(FoodColor.pen, x + G_BYTESIZEOFSQUARE / 3, y + G_BYTESIZEOFSQUARE / 3, (G_BYTESIZEOFSQUARE / 10) * (byte)type, (G_BYTESIZEOFSQUARE / 10) * (byte)type);
-            graphics.FillEllipse(FoodColor.solidBrush, x + G_BYTESIZEOFSQUARE / 3, y + G_BYTESIZEOFSQUARE / 3, (G_BYTESIZEOFSQUARE / 10) * (byte)type, (G_BYTESIZEOFSQUARE / 10) * (byte)type);
+            graphics.DrawEllipse(FoodColor.Pen, x + G_BYTESIZEOFSQUARE / 3, y + G_BYTESIZEOFSQUARE / 3, (G_BYTESIZEOFSQUARE / 10) * (byte)type, (G_BYTESIZEOFSQUARE / 10) * (byte)type);
+            graphics.FillEllipse(FoodColor.SolidBrush, x + G_BYTESIZEOFSQUARE / 3, y + G_BYTESIZEOFSQUARE / 3, (G_BYTESIZEOFSQUARE / 10) * (byte)type, (G_BYTESIZEOFSQUARE / 10) * (byte)type);
         }
         #endregion Food
 
@@ -120,10 +120,11 @@ namespace PacMan
         /// <summary>
         /// Color for the food
         /// </summary>
-        internal class FoodColor
+        private class FoodColor
         {
-            public static Pen pen = new Pen(Color.White, 1);
-            public static SolidBrush solidBrush = new SolidBrush(Color.White);
+            private static readonly Color _foodColor = Color.White;
+            public static Pen Pen = new Pen(_foodColor, 1);
+            public static SolidBrush SolidBrush = new SolidBrush(_foodColor);
         }
         #endregion relation with food classes
     }

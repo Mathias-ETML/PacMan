@@ -8,7 +8,10 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.IO;
+using Vector;
 using static PacMan.Variables;
+// TODO : GHOST EATING
+
 
 // todo : finish this game before 2021
 // todo : master in potato recolting
@@ -37,18 +40,19 @@ namespace PacMan
         private Panel _body;
         private Map _map;
         private Graphics _pacManGraphics;
+        private Graphics _windowGameGraphics;
         private int _pacManAnimationInterval = G_BYTETIMEBETWENGAMETICK * 2;
         private Timer _onAnimationUpdate;
+        private Timer _endGhostEating;
+        private const int _GHOSTEATINGTIME = 7000; // in ms
         private Color _pacManBodyColor = Color.Yellow;
         private Mouth.Position _lastAuthorizedDirection = Mouth.Position.North;
         private Mouth.Position _actualMouthDirection = Mouth.Position.North;
         private bool _disposed = false;
         private bool _isPacManMouthOpen = true;
-#pragma warning disable CS0414
         private bool _canPacManEatGhost = false;
-#pragma warning restore CS0414
         private ulong _playerScore = 0;
-        private static readonly sbyte _speedOfPacMan = 10; // in px
+        public const int SPEEDOFPACMAN = 10; // in px
         private Vector2 _deplacementPacMan;// = new Vector2(0, 0);
         #endregion variables
 
@@ -70,14 +74,8 @@ namespace PacMan
             PacManLocation = new Point(x, y);
         }
 
-        public static sbyte SpeedOfPacMan { get => _speedOfPacMan; }
+        public static int SpeedOfPacMan { get => SPEEDOFPACMAN; }
         public Vector2 GetDeplacementPacMan { get => _deplacementPacMan; }
-
-        public void SetPacManDeplacement(int x, int y)
-        {
-            _deplacementPacMan.X = x;
-            _deplacementPacMan.Y = y;
-        }
 
         public Mouth.Position ActualMouthDirection { get =>_actualMouthDirection; }
         public Mouth.Position LastAutorizedDirection { get => _lastAuthorizedDirection; }
@@ -87,6 +85,9 @@ namespace PacMan
         {
             _playerScore += (ulong)points;
         }
+
+        public int X { get => _body.Location.X; }
+        public int Y { get => _body.Location.Y; }
         #endregion propriety
 
         #region PacMan code
@@ -96,14 +97,17 @@ namespace PacMan
         /// </summary>
         /// <param name="x">x location</param>
         /// <param name="y">y location</param>
-        public PacMan(int x, int y, Map map)
+        public PacMan(int x, int y, Map map, Graphics windowGame)
         {
-            _body = new Panel()
+            this._body = new Panel()
             {
                 Location = new Point(x, y),
                 Size = new Size(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE),
                 BackColor = Color.Black
             };
+
+            // getting the pointer for the graphics of the panel
+            this._windowGameGraphics = windowGame;
 
             // getting the map
             this._map = map;
@@ -112,6 +116,7 @@ namespace PacMan
             this._pacManGraphics = _body.CreateGraphics();
 
             // it work only because it's a event handler, you can't just use DrawPacManBody, you need the event handler
+            // maybe the memory problem is here
             this._body.Paint += CreatePacMan;
 
             //Body.BackgroundImage = Properties.Resources.pacman;
@@ -119,7 +124,10 @@ namespace PacMan
             // create a vector for the mouvment of the pacman body
             this._deplacementPacMan = new Vector2(0, 0);
 
-            StartPacManAnimation();
+            if (!G_lightMode)
+            {
+                StartPacManAnimation();
+            }
         }
         #endregion custom construtor
 
@@ -207,7 +215,7 @@ namespace PacMan
         /// Update the pacman location
         /// </summary>
         /// <returns> return if need to update the teleportation zone </returns>
-        public bool Move()
+        public void Move()
         {
             if (_body != null && !_disposed)
             {
@@ -219,25 +227,25 @@ namespace PacMan
                         if (CheckIfOnGrid())
                         {
                             TeleportPacMan();
-
-                            return true;
+                            UpdateTeleportation();
                         }
                         break;
+
+                    case Map.MapMeaning.BIGFOOD:
+                        break;
+
+                    case Map.MapMeaning.FOOD:
+                        // eating food
+                        Eat();
+                        break;
+                    
                     default:
                         break;
                 }
 
                 // get the future location of the pacman
-                int[] tab_intFutureLocation = CheckIfPacManCanMove();
-
-                // eating food
-                Eat();
-
-                // and setting the pacman location
-                SetPacManLocation(tab_intFutureLocation[0], tab_intFutureLocation[1]);
+                PacManFutureLocation();
             }
-
-            return false;
         }
 
         #region PacMan body update
@@ -282,10 +290,11 @@ namespace PacMan
             }
 
             // get the location, not memory frienly but processor friendly because you do it once
-            byte xPosition = (byte)((PacManLocation.X / G_BYTESIZEOFSQUARE));
-            byte yPosition = (byte)((PacManLocation.Y / G_BYTESIZEOFSQUARE));
-            sbyte xFuturePosition = (sbyte)(_deplacementPacMan.X / _speedOfPacMan);
-            sbyte yFuturePosition = (sbyte)(_deplacementPacMan.Y / _speedOfPacMan);
+            // casting heavy
+            int xPosition = PacManLocation.X / G_BYTESIZEOFSQUARE;
+            int yPosition = PacManLocation.Y / G_BYTESIZEOFSQUARE;
+            int xFuturePosition = _deplacementPacMan.X / SPEEDOFPACMAN;
+            int yFuturePosition = _deplacementPacMan.Y / SPEEDOFPACMAN;
 
             // check if the future location is not a wall
             if (CheckIfOnGrid() && (_map.GameMap[yPosition + yFuturePosition, xPosition + xFuturePosition] != Map.MapMeaning.WALL))
@@ -337,12 +346,8 @@ namespace PacMan
         /// <summary>
         /// Update the graphics of the map
         /// </summary>
-        /// <param name="sender">in our case, the panel of the map</param>
-        /// <param name="e"></param>
-        public void UpdateMap(object sender, PaintEventArgs e)
+        public void UpdateMap()
         {
-            Graphics graphics = e.Graphics;
-
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
             // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
@@ -351,7 +356,7 @@ namespace PacMan
                 case Mouth.Position.North:
 
                     // TODO : explain why
-                    Map.DrawMapRectangle(graphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) + 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y + G_BYTESIZEOFSQUARE);
+                    Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) + 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y + G_BYTESIZEOFSQUARE);
                     break;
 
                 case Mouth.Position.East:
@@ -359,11 +364,11 @@ namespace PacMan
                     // TODO : explain why
                     if (_map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1] != Map.MapMeaning.WALL && _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1] != Map.MapMeaning.TELEPORT)
                     {
-                        Map.DrawMapRectangle(graphics, _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
+                        Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE) - 1], PacManLocation.X - G_BYTESIZEOFSQUARE, PacManLocation.Y);
                     }
                     else
                     {
-                        Map.DrawMapRectangle(graphics, _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - PacManLocation.X % G_BYTESIZEOFSQUARE, PacManLocation.Y);
+                        Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X - PacManLocation.X % G_BYTESIZEOFSQUARE, PacManLocation.Y);
                     }
                     return;
 
@@ -372,11 +377,11 @@ namespace PacMan
                     // TODO : explain why
                     if (_map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) - 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)] != Map.MapMeaning.WALL)
                     {
-                        Map.DrawMapRectangle(graphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) - 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - G_BYTESIZEOFSQUARE);
+                        Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE) - 1, (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - G_BYTESIZEOFSQUARE);
                     }
                     else
                     {
-                        Map.DrawMapRectangle(graphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - PacManLocation.Y % G_BYTESIZEOFSQUARE);
+                        Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - PacManLocation.Y % G_BYTESIZEOFSQUARE);
                     }
 
                     return;
@@ -384,14 +389,14 @@ namespace PacMan
                 case Mouth.Position.West:
 
                     // TODO : explain why
-                    Map.DrawMapRectangle(graphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE) + 1], PacManLocation.X + G_BYTESIZEOFSQUARE, PacManLocation.Y);
+                    Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE) + 1], PacManLocation.X + G_BYTESIZEOFSQUARE, PacManLocation.Y);
                     break;
                 default:
                     break;
             }
 
             // update the actual case of the map
-            Map.DrawMapRectangle(graphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y);
+            Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / G_BYTESIZEOFSQUARE), (PacManLocation.X / G_BYTESIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y);
         }
         #endregion PacMan map update
 
@@ -401,13 +406,13 @@ namespace PacMan
         /// </summary>
         /// <param name="sender">in our case, the panel of the map</param>
         /// <param name="e"></param>
-        public void UpdateTeleportation(object sender, PaintEventArgs e)
+        public void UpdateTeleportation()
         {
             // get the original point with some magic code
             Point buffer = TeleportRelation.WhereToTeleportPacMan.FirstOrDefault(x => x.Value == PacManLocation).Key;
 
             // redraw the teleportation pad on the original point
-            e.Graphics.FillRectangle(new SolidBrush(Map.MapDictionary[_map.GameMap[buffer.Y / G_BYTESIZEOFSQUARE, buffer.X / G_BYTESIZEOFSQUARE]]), 
+            _windowGameGraphics.FillRectangle(new SolidBrush(Map.MapDictionary[_map.GameMap[buffer.Y / G_BYTESIZEOFSQUARE, buffer.X / G_BYTESIZEOFSQUARE]]), 
 
             // create a new rectangle
             new Rectangle(buffer.X, buffer.Y, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE));
@@ -425,32 +430,34 @@ namespace PacMan
 
         #region PacMan miscellaneous
         /// <summary>
-        /// check if the pacman is on the grid
+        /// Check if on grid
         /// </summary>
-        /// <returns>a boolean if the pacman is on te grid</returns>
+        /// <returns>if on grid</returns>
         public bool CheckIfOnGrid()
         {
-            return PacManLocation.Y % G_BYTESIZEOFSQUARE == 0 && PacManLocation.X % G_BYTESIZEOFSQUARE == 0;
+            return this.Y % G_BYTESIZEOFSQUARE == 0 && this.X % G_BYTESIZEOFSQUARE == 0;
         }
 
         /// <summary>
         /// Check if the pacman future location is not a wall
         /// </summary>
         /// <returns>return the future location</returns>
-        private int[] CheckIfPacManCanMove()
+        private void PacManFutureLocation()
         {
             // check if on the grid
             if (CheckIfOnGrid())
             {
                 // check if the block in front of him is a wall
-                if (_map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE + _deplacementPacMan.Y / _speedOfPacMan, PacManLocation.X / G_BYTESIZEOFSQUARE + _deplacementPacMan.X / _speedOfPacMan] == Map.MapMeaning.WALL)
+                if (_map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE + _deplacementPacMan.Y / SPEEDOFPACMAN, PacManLocation.X / G_BYTESIZEOFSQUARE + _deplacementPacMan.X / SPEEDOFPACMAN] == Map.MapMeaning.WALL)
                 {
-                    return new int[2] { PacManLocation.X, PacManLocation.Y };
+                    this._deplacementPacMan.X = 0;
+                    this._deplacementPacMan.Y = 0;
+                    return;
                 }
             }
 
             // if not on the grid the pacman will not hit a wall
-            return new int[2] { PacManLocation.X + _deplacementPacMan.X, PacManLocation.Y + _deplacementPacMan.Y };
+            SetPacManLocation(PacManLocation.X + _deplacementPacMan.X, PacManLocation.Y + _deplacementPacMan.Y);
         }
 
         /// <summary>
@@ -470,19 +477,55 @@ namespace PacMan
             // check if on grid, else there will be no food
             if (CheckIfOnGrid())
             {
-                // check if there is food on the map
-                if (_map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE] != Map.MapMeaning.ROAD && _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE] != Map.MapMeaning.TELEPORT)
-                {
-                    // adding point
-                    AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE]]);
+                // adding point
+                AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE]]);
 
-                    // removing the food
-                    _map.FoodsMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE].Dispose();
+                // removing the food
+                _map.FoodsMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE].Dispose();
 
-                    // chanching the type of case
-                    _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE] = Map.MapMeaning.ROAD;
-                }
+                // chanching the type of case
+                _map.GameMap[PacManLocation.Y / G_BYTESIZEOFSQUARE, PacManLocation.X / G_BYTESIZEOFSQUARE] = Map.MapMeaning.ROAD;
             }
+        }
+
+        /// <summary>
+        /// Start of invicibility
+        /// </summary>
+        private void StartGhostEating()
+        {
+            this._canPacManEatGhost = true;
+            this._endGhostEating = new Timer();
+            this._endGhostEating.Interval = _GHOSTEATINGTIME;
+            this._endGhostEating.Tick += StopGhostEating;
+        }
+
+        /// <summary>
+        /// end of invicibility
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StopGhostEating(object sender, EventArgs e)
+        {
+            this._canPacManEatGhost = false;
+            ((Timer)sender).Dispose();
+        }
+
+        public void EatGhost()
+        {
+            if (_canPacManEatGhost)
+            {
+
+            }
+            else
+            {
+                // he die
+            }
+        }
+
+        public void SetPacManDeplacement(int x, int y)
+        {
+            _deplacementPacMan.X = x;
+            _deplacementPacMan.Y = y;
         }
         #endregion PacMan miscellaneous
 
@@ -508,6 +551,8 @@ namespace PacMan
             {
                 _body.Dispose();
                 _onAnimationUpdate.Dispose();
+                _endGhostEating.Dispose();
+                _deplacementPacMan.Dispose();
             }
 
             GC.SuppressFinalize(this);

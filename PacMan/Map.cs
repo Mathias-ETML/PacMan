@@ -1,8 +1,7 @@
-﻿
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using JsonFileConvertor;
+using PacMan.Properties;
 using static PacMan.Variables;
 
 namespace PacMan
@@ -22,6 +21,7 @@ namespace PacMan
             FOOD,
             BIGFOOD,
             TELEPORT,
+            DEBUG
         }
         #endregion enum
 
@@ -52,7 +52,7 @@ namespace PacMan
         public Map()
         {
             // new json convertor made by me, its bad BUT it work and i am not a god
-            JsonConvertor jsonConvertor = new JsonConvertor(Properties.Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
+            JsonConvertor jsonConvertor = new JsonConvertor(Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
 
             // getting the node because more simpler
             JsonConvertor.JsonNode jsonNode = jsonConvertor.GetElementByName("map");
@@ -87,7 +87,7 @@ namespace PacMan
         /// <param name="y"> y location </param>
         public static void DrawMapRectangle(Graphics graphics, MapMeaning mapMeaning, int x, int y)
         {
-            _color = MapDictionary[mapMeaning];
+            _color = _mapDictionary[mapMeaning];
 
             // auto dispose
             using (SolidBrush solidBrush = new SolidBrush(_color))
@@ -101,7 +101,7 @@ namespace PacMan
         /// <summary>
         /// The color of the square that will be created
         /// </summary>
-        public static readonly Dictionary<MapMeaning, Color> MapDictionary = new Dictionary<MapMeaning, Color>(7)
+        private static readonly Dictionary<MapMeaning, Color> _mapDictionary = new Dictionary<MapMeaning, Color>(7)
         {
             { MapMeaning.EMPTY, Color.Black },
             { MapMeaning.WALL, Color.DarkBlue },
@@ -109,7 +109,10 @@ namespace PacMan
             { MapMeaning.FOOD, Color.Black },
             { MapMeaning.BIGFOOD, Color.Black },
             { MapMeaning.TELEPORT, Color.Yellow },
+            { MapMeaning.DEBUG, Color.Red }
         };
+
+        public static Dictionary<MapMeaning, Color> MapDictionary => _mapDictionary;
         #endregion Map dictionnary color
 
         #region Foodmap class

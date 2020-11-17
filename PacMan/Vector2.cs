@@ -1,11 +1,12 @@
 ﻿using System;
 
-namespace PacMan
+namespace Vector
 {
     /// <summary>
     /// 2D Vector class
     /// </summary>
-    public class Vector2 : IDisposable
+    [Serializable]
+    public class Vector2 : IDisposable, ICloneable
     {
         #region variables
         /// <summary>
@@ -24,6 +25,13 @@ namespace PacMan
         public int Y { get => _y; set => _y = value; }
         #endregion propriety
 
+        #region ICloneable implementation
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+        #endregion ICloneable implementation
+
         #region vector
         /// <summary>
         /// Default constructor
@@ -38,7 +46,7 @@ namespace PacMan
         public Vector2(int x, int y)
         {
             this._x = x;
-            this._y = x;
+            this._y = y;
         }
         #endregion vector
 
@@ -69,6 +77,8 @@ namespace PacMan
 
             _disposed = true;
         }
+
+
         #endregion memory managment
     }
 }
