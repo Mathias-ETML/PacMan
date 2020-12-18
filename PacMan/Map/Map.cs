@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using JsonFileConvertor;
-using PacMan.Properties;
-using static PacMan.Variables;
+using PacMan.GameView;
+using PacMan.Entities;
+using PacMan.Map;
 
-namespace PacMan
+namespace PacMan.Map
 {
-    public class Map
+    public class GameMap : IDisposable
     {
         #region attributs
         #region enum
@@ -28,20 +30,21 @@ namespace PacMan
         /// <summary>
         /// Attributs
         /// </summary>
-        private readonly int _mapWidth;
-        private readonly int _mapHeight;
+        public const int WIDTH = 19;
+        public const int HEIGHT = 19;
         private static Color _color;
         private FoodMap _foodMap;
         private MapMeaning[,] _gameMap;
+        private bool disposedValue = false; // Pour détecter les appels redondants
+
         #endregion attributs
 
         #region proprieties
         /// <summary>
         /// Propriety
         /// </summary>
-        public int MapWidth { get => _mapWidth; }
-        public int MapHeight { get => _mapHeight; }
-        public MapMeaning[,] GameMap { get => _gameMap; set => _gameMap = value; }
+
+        public MapMeaning[,] GameMapMeaning { get => _gameMap; set => _gameMap = value; }
         public Food[,] FoodsMap { get => _foodMap.FoodsMap; }
         #endregion proprieties
 
@@ -49,25 +52,33 @@ namespace PacMan
         /// <summary>
         /// Default constructor
         /// </summary>
-        public Map()
+        public GameMap()
         {
             // new json convertor made by me, its bad BUT it work and i am not a god
-            JsonConvertor jsonConvertor = new JsonConvertor(Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
+            JsonConvertor jsonConvertor = new JsonConvertor(global::PacMan.Properties.Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
 
             // getting the node because more simpler
             JsonConvertor.JsonNode jsonNode = jsonConvertor.GetElementByName("map");
 
-            // getting the height
-            this._mapHeight = jsonNode.GetDataByName<int>("height");
+            // checking the heihgt
+            if (jsonNode.GetDataByName<int>("height") != HEIGHT)
+            {
+                throw new ArgumentException("the height in the json file is not the same as the height in the const field", "MAPWIDTH");
+            }
 
-            // getting the width
-            this._mapWidth = jsonNode.GetDataByName<int>("width");
+            // checking the width
+            if (jsonNode.GetDataByName<int>("width") != HEIGHT)
+            {
+                throw new ArgumentException("the height in the json file is not the same as the height in the const field", "MAPHEIGHT");
+            }
+            // you never know
+
 
             // creating the map with the data
-            this._gameMap = new MapMeaning[_mapHeight, _mapWidth];
+            this._gameMap = new MapMeaning[HEIGHT, HEIGHT];
 
             // creating the map for the foood
-            this._foodMap = new FoodMap(_mapHeight, _mapWidth);
+            this._foodMap = new FoodMap(HEIGHT, HEIGHT);
 
             // getting the map data
             this._gameMap = jsonNode.GetDataEnumMultidimentionalArray<MapMeaning>("data");
@@ -85,14 +96,14 @@ namespace PacMan
         /// <param name="mapMeaning"> what type of square to you want, you can pick it from the map </param>
         /// <param name="x"> x location </param>
         /// <param name="y"> y location </param>
-        public static void DrawMapRectangle(Graphics graphics, MapMeaning mapMeaning, int x, int y)
+        public static void DrawMapRectangle(Graphics graphics, MapMeaning mapMeaning, int x, int y, int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
         {
             _color = _mapDictionary[mapMeaning];
 
             // auto dispose
             using (SolidBrush solidBrush = new SolidBrush(_color))
             {
-                graphics.FillRectangle(solidBrush, x, y, G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE);
+                graphics.FillRectangle(solidBrush, x, y, width, height);
             }
         }
         #endregion Map drawing
@@ -119,7 +130,7 @@ namespace PacMan
         /// <summary>
         /// Create the map for the food
         /// </summary>
-        public class FoodMap
+        public class FoodMap : IDisposable
         {
             #region Attributs
             /// <summary>
@@ -145,7 +156,55 @@ namespace PacMan
             }
             #endregion constructor
 
+            #region IDisposable Support
+            private bool disposedValue = false; // Pour détecter les appels redondants
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        
+                    }
+
+                    this._foodsMap = null;
+
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            #endregion
         }
         #endregion Foodmap class
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+
+                }
+
+                _foodMap.Dispose();
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Vector
+namespace Vector.Vector2
 {
     /// <summary>
     /// 2D Vector class

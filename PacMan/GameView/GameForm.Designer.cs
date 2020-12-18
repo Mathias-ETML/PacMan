@@ -1,6 +1,6 @@
-﻿namespace PacMan
+﻿namespace PacMan.GameView
 {
-    partial class frm_FormPrincipal
+    partial class GameForm
     {
         /// <summary>
         /// Variable nécessaire au concepteur.
@@ -28,19 +28,19 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.pan_PanMap = new System.Windows.Forms.Panel();
+            this.panPanGame = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
-            // pan_PanMap
+            // panPanGame
             // 
-            this.pan_PanMap.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pan_PanMap.Location = new System.Drawing.Point(100, 10);
-            this.pan_PanMap.Name = "pan_PanMap";
-            this.pan_PanMap.Size = new System.Drawing.Size(760, 760);
-            this.pan_PanMap.TabIndex = 0;
-            this.pan_PanMap.Paint += new System.Windows.Forms.PaintEventHandler(this.FoodMapDisposition);
+            this.panPanGame.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panPanGame.Location = new System.Drawing.Point(100, 10);
+            this.panPanGame.Name = "panPanGame";
+            this.panPanGame.Size = new System.Drawing.Size(760, 760);
+            this.panPanGame.TabIndex = 0;
+            this.panPanGame.Paint += new System.Windows.Forms.PaintEventHandler(this.DrawFoodMap);
             // 
             // label1
             // 
@@ -60,16 +60,16 @@
             this.label2.TabIndex = 2;
             this.label2.Text = "label2";
             // 
-            // frm_FormPrincipal
+            // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(984, 786);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.pan_PanMap);
+            this.Controls.Add(this.panPanGame);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Name = "frm_FormPrincipal";
+            this.Name = "GameForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "PacMan";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyPressed);
@@ -80,7 +80,7 @@
 
         #endregion
 
-        public System.Windows.Forms.Panel pan_PanMap;
+        public System.Windows.Forms.Panel panPanGame;
         public System.Windows.Forms.Label label1;
         public System.Windows.Forms.Label label2;
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using PacMan.Controllers.GameControllerNS;
 
 namespace PacMan
 {
@@ -17,7 +18,8 @@ namespace PacMan
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frm_FormPrincipal());
+
+            GameController gameController = new GameController();
         }
         #endregion Main entry
     }

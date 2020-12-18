@@ -1861,7 +1861,7 @@ namespace JsonFileConvertor
                         {
                             if (disposing)
                             {
-                                this._data = default;
+                                this._data = null;
                                 this._array = null;
                                 this._multiArray = null;
                                 if (this._jsonNode != null)

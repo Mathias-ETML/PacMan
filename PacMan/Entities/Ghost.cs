@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using Vector;
-using static PacMan.Variables;
+using Vector.Vector2;
+using PacMan.Interfaces.IEntityNS;
+using PacMan.Map;
+using PacMan.GameView;
+using PacMan.Interfaces.IControllerNS;
+using static PacMan.Misc.Variables;
 
 /*
  * TODO : EXCEPTIONS WHEN SOMETHING GOES WRONG
@@ -13,9 +17,9 @@ using static PacMan.Variables;
  * 
  * todo : controller
  */
-namespace PacMan
+namespace PacMan.Entities
 {
-    public class Ghost : AIRegroupgment, IDisposable
+    public class Ghost : Entity
     {
         #region variables
         #region enum
@@ -30,11 +34,11 @@ namespace PacMan
             RED
         }
         #endregion enum
-        public const int SPEED = 10;
-        private Map _map;
+        private ObjectContainer _objectContainer;
+        private GameMap _map;
         private Panel _body;
         private Graphics _ghostGraphics;
-        private Graphics _windowGameGraphics;
+        private readonly Graphics _windowGameGraphics;
         private bool _disposed = false;
         private readonly Type _type;
         private GhostAI _AI;
@@ -43,7 +47,7 @@ namespace PacMan
         #endregion variables
 
         #region proprieties
-        public Panel Body { get => _body; }
+        public override Panel Body { get => _body; set => _body = value; }
         public Vector2 GhostDeplacment
         {
             get => _deplacementGhost;
@@ -53,7 +57,9 @@ namespace PacMan
                 _deplacementGhost.Y = value.Y; // not getting the pointer, but the value, so no need to clone
             }
         }
-        public Map Map { get => _map; }
+        public GameMap Map { get => _map; }
+
+        public override ObjectContainer ObjectContainer { get => _objectContainer; set => _objectContainer = value; }
 
         public int X { get => _body.Location.X; }
         public int Y { get => _body.Location.Y; }
@@ -62,18 +68,20 @@ namespace PacMan
         #endregion proprieties
 
         #region Ghost construtor
-        public Ghost(int x, int y, Type type, Graphics windowGame, Map map)
+        public Ghost(int x, int y, Type type, ObjectContainer objectContainer)
         {
             this._body = new Panel()
             {
                 Location = new Point(x, y),
-                Size = new Size(G_BYTESIZEOFSQUARE, G_BYTESIZEOFSQUARE), 
+                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE), 
                 BackColor = Color.Black
             };
 
-            this._windowGameGraphics = windowGame;
+            this.ObjectContainer = objectContainer;
 
-            this._map = map;
+            this._windowGameGraphics = ObjectContainer.GameFormPanelGraphics;
+
+            this._map = ObjectContainer.Map;
 
             this._ghostGraphics = _body.CreateGraphics();
 
@@ -83,20 +91,20 @@ namespace PacMan
             {
                 // this everywhere !
                 case Type.YELLOW:
-                    this._AI = new YellowAI(this);
-                    this._color = YellowAI.Color;
+                    this._AI = new AIRegroupgment.YellowAI(this);
+                    this._color = AIRegroupgment.YellowAI.Color;
                     break;
                 case Type.BLUE:
-                    this._AI = new BlueAI(this);
-                    this._color = BlueAI.Color;
+                    this._AI = new AIRegroupgment.BlueAI(this);
+                    this._color = AIRegroupgment.BlueAI.Color;
                     break;
                 case Type.PINK:
-                    this._AI = new PinkAI(this);
-                    this._color = PinkAI.Color;
+                    this._AI = new AIRegroupgment.PinkAI(this);
+                    this._color = AIRegroupgment.PinkAI.Color;
                     break;
                 case Type.RED:
-                    this._AI = new RedAI(this);
-                    this._color = RedAI.Color;
+                    this._AI = new AIRegroupgment.RedAI(this, this._map);
+                    this._color = AIRegroupgment.RedAI.Color;
                     break;
                 default:
                     this._AI = null;
@@ -105,6 +113,11 @@ namespace PacMan
 
             this._type = type;
 
+            OnStart();
+        }
+
+        public override void OnStart()
+        {
             this._body.Paint += CreateGhost;
         }
 
@@ -139,22 +152,15 @@ namespace PacMan
         #endregion Ghost constructor
 
         #region Ghost update
-        public void Move()
+        public override void OnUpdate()
         {
             if (_body != null && _AI != null)
             {
                 _AI.OnUpdate();
+                this.UpdateMap();
             }
         }
         #endregion Ghost update
-
-        #region Ghost deplacment
-        public void SetGhostDeplacement(int futureX, int futureY)
-        {
-            this._deplacementGhost.X = futureX;
-            this._deplacementGhost.Y = futureY;
-        }
-        #endregion Ghost deplacment
 
         #region MapUpdate
         public void UpdateMap()
@@ -165,52 +171,7 @@ namespace PacMan
 
         private void DrawMap()
         {
-            // drawing of the map with delta XY
-            // this is pure garbage
-            switch (_AI.CurrentDirection)
-            {
-                case Direction.North:
-                    // y + 1
-                    //
-                    Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE, this.X / G_BYTESIZEOFSQUARE], this.X, this.Y + G_BYTESIZEOFSQUARE - this.Y % G_BYTESIZEOFSQUARE);
-                    if (this.CheckIfOnGrid())
-                    {
-                        Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE + 1, this.X / G_BYTESIZEOFSQUARE], this.X, this.Y + G_BYTESIZEOFSQUARE);
-                    }
-                    break;
-                case Direction.East:
-                    // x - 1
-                    // 
-                    Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE, this.X / G_BYTESIZEOFSQUARE], this.X - this.X % G_BYTESIZEOFSQUARE, this.Y);
-                    //
-                    if (this.CheckIfOnGrid())
-                    {
-                        Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE, this.X / G_BYTESIZEOFSQUARE - 1], this.X - G_BYTESIZEOFSQUARE, this.Y);
-                    }
-                    break;
-                case Direction.South:
-                    // y - 1
-                    //
-                    Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE, this.X / G_BYTESIZEOFSQUARE], this.X, this.Y - this.Y % G_BYTESIZEOFSQUARE);
-                    //
-                    if (this.CheckIfOnGrid())
-                    {
-                        Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE - 1, this.X / G_BYTESIZEOFSQUARE], this.X, this.Y - G_BYTESIZEOFSQUARE);
-                    }
-                    break;
-                case Direction.West:
-                    // x + 1
-                    //
-                    Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE, this.X / G_BYTESIZEOFSQUARE], this.X + G_BYTESIZEOFSQUARE - this.X % G_BYTESIZEOFSQUARE, this.Y);
-                    //
-                    if (this.CheckIfOnGrid())
-                    {
-                        Map.DrawMapRectangle(this._windowGameGraphics, Map.GameMap[this.Y / G_BYTESIZEOFSQUARE, this.X / G_BYTESIZEOFSQUARE + 1], this.X + G_BYTESIZEOFSQUARE, this.Y);
-                    }
-                    break;
-                default:
-                    break;
-            }
+            GameMap.DrawMapRectangle(this._windowGameGraphics, _map.GameMapMeaning[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementGhost.X, this.Y - this._deplacementGhost.Y);
         }
 
         private void DrawFood()
@@ -222,37 +183,38 @@ namespace PacMan
             switch (_AI.CurrentDirection)
             {
                 case Direction.North:
-                    y = G_BYTESIZEOFSQUARE - this.Y % G_BYTESIZEOFSQUARE;
+                    y = GameForm.SIZEOFSQUARE - this.Y % GameForm.SIZEOFSQUARE;
                     break;
                 case Direction.East:
-                    x = -this.X % G_BYTESIZEOFSQUARE;
+                    x = -this.X % GameForm.SIZEOFSQUARE;
                     if (CheckIfOnGrid())
                     {
-                        x -= G_BYTESIZEOFSQUARE;
+                        x -= GameForm.SIZEOFSQUARE;
                     }
                     break;
                 case Direction.South:
-                    y = -this.Y % G_BYTESIZEOFSQUARE;
+                    y = -this.Y % GameForm.SIZEOFSQUARE;
                     if (CheckIfOnGrid())
                     {
-                        y -= G_BYTESIZEOFSQUARE;
+                        y -= GameForm.SIZEOFSQUARE;
                     }
                     break;
                 case Direction.West:
-                    x = G_BYTESIZEOFSQUARE - this.X % G_BYTESIZEOFSQUARE;
+                    x = GameForm.SIZEOFSQUARE - this.X % GameForm.SIZEOFSQUARE;
                     break;
                 default:
                     break;
             }
 
-            switch (Map.GameMap[(this.Y + y) / G_BYTESIZEOFSQUARE, (this.X + x) / G_BYTESIZEOFSQUARE])
+            switch (_map.GameMapMeaning[(this.Y + y) / GameForm.SIZEOFSQUARE, (this.X + x) / GameForm.SIZEOFSQUARE])
             {
-                case Map.MapMeaning.FOOD:
+                case GameMap.MapMeaning.FOOD:
                     Food.DrawFood(_windowGameGraphics, Food.FoodMeaning.FOOD, (this.X + x), (this.Y + y));
                     break;
-                case Map.MapMeaning.BIGFOOD:
+                case GameMap.MapMeaning.BIGFOOD:
+                    Food.DrawFood(_windowGameGraphics, Food.FoodMeaning.BIGFOOD, (this.X + x), (this.Y + y));
                     break;
-                case Map.MapMeaning.TELEPORT:
+                case GameMap.MapMeaning.TELEPORT:
                     // hehe yes
                     break;
                 default:
@@ -268,7 +230,7 @@ namespace PacMan
         /// <returns>if on grid</returns>
         public bool CheckIfOnGrid()
         {
-            return this.Y % G_BYTESIZEOFSQUARE == 0 && this.X % G_BYTESIZEOFSQUARE == 0;
+            return this.Y % GameForm.SIZEOFSQUARE == 0 && this.X % GameForm.SIZEOFSQUARE == 0;
         }
 
         public void SetGhostLocation(int x, int y)
@@ -281,24 +243,38 @@ namespace PacMan
         /// <summary>
         /// Dispose
         /// </summary>
-        public void Dispose()
+        public new void Dispose()
         {
             if (!_disposed)
             {
-                Dispose(true);
+                this.Dispose(true);
             }
+
+            GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 _body.Dispose();
                 _deplacementGhost.Dispose();
+                _AI.Dispose();
             }
 
-            GC.SuppressFinalize(this);
+            base.Dispose(disposing);
+
             _disposed = true;
+        }
+
+        public override void Spawn()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Die()
+        {
+            throw new NotImplementedException();
         }
         #endregion memory managment
     }
@@ -307,7 +283,7 @@ namespace PacMan
     /// <summary>
     /// Is this bad ? Idk, i never did abstract and override
     /// </summary>
-    public abstract class AIRegroupgment : DirectionRelation
+    public abstract class AIRegroupgment
     {
         /*
          * YELLOW : He will chase after Pac-Man in Blinky's manner, but will wander off to his home corner when he gets too close.
@@ -315,7 +291,7 @@ namespace PacMan
          * PINK : Scared, go to opposit of youself, but if you are in a radius of you, chase you for 5 sec max
          * RED : Chase you, try to go to the close way possible of you
          */
-        protected class YellowAI : GhostAI
+        public class YellowAI : GhostAI
         {
             /// <summary>
             /// Attribut
@@ -336,6 +312,11 @@ namespace PacMan
                 base._rayon = RAYON;
             }
 
+            public override void OnStart()
+            {
+                base.OnStart();
+            }
+
             /// <summary>
             /// On update function
             /// </summary>
@@ -343,9 +324,19 @@ namespace PacMan
             {
                 base.OnUpdate();
             }
+
+            public override void Spawn()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Die()
+            {
+                throw new NotImplementedException();
+            }
         }
 
-        protected class BlueAI : GhostAI
+        public class BlueAI : GhostAI
         {
             /// <summary>
             /// Attribut
@@ -365,6 +356,12 @@ namespace PacMan
             public BlueAI(Ghost ghost) : base(ghost)
             {
                 base._rayon = RAYON;
+                OnStart();
+            }
+
+            public override void OnStart()
+            {
+                base.OnStart();
             }
 
             /// <summary>
@@ -372,10 +369,11 @@ namespace PacMan
             /// </summary>
             public override void OnUpdate()
             {
-                if (!GhostFutureLocation())
+                if (CheckIfOnGrid())
                 {
+                    NeedVectorUpdate();
                     FindRandomDirection();
-                } 
+                }
 
                 base.OnUpdate();
             }
@@ -389,16 +387,31 @@ namespace PacMan
 
                 if (directions.Count == 1)
                 {
+                    if (directions[0] == base._currentDirection)
+                    {
+                        return;
+                    }
+
                     base._currentDirection = directions[0];
-                    base._ghost.GhostDeplacment = DirectionValue[directions[0]];
+                    base._ghost.GhostDeplacment = Entity.DirectionsValues[directions[0]];
                 }
                 else
                 {
                     base._currentDirection = directions[_rnd.Next(0, directions.Count)];
-                    base._ghost.GhostDeplacment = DirectionValue[base._currentDirection]; 
+                    base._ghost.GhostDeplacment = Entity.DirectionsValues[base._currentDirection]; 
                     // i made a big mistake, i got the pointer to the object in the dictionary
-                    // sometime i want to managme myself the pointers
+                    // sometime i want to manage myself the pointers
                 }
+            }
+
+            public override void Spawn()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Die()
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -423,6 +436,11 @@ namespace PacMan
                 base._rayon = RAYON;
             }
 
+            public override void OnStart()
+            {
+                base.OnStart();
+            }
+
             /// <summary>
             /// On update function
             /// </summary>
@@ -430,14 +448,25 @@ namespace PacMan
             {
                 base.OnUpdate();
             }
+
+            public override void Spawn()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Die()
+            {
+                throw new NotImplementedException();
+            }
         }
 
-        protected class RedAI : GhostAI
+        public class RedAI : GhostAI
         {
             /// <summary>
             /// Attribut
             /// </summary>
             private const int RAYON = 0;
+            private GameMap _map;
 
             /// <summary>
             /// Propriety
@@ -448,9 +477,16 @@ namespace PacMan
             /// Custom constructor
             /// </summary>
             /// <param name="ghost">ghost</param>
-            public RedAI(Ghost ghost) : base(ghost)
+            public RedAI(Ghost ghost, GameMap map) : base(ghost)
             {
                 base._rayon = RAYON;
+                this._map = map;
+                OnStart();
+            }
+
+            public override void OnStart()
+            {
+                base.OnStart();
             }
 
             /// <summary>
@@ -458,12 +494,118 @@ namespace PacMan
             /// </summary>
             public override void OnUpdate()
             {
+                if (CheckIfOnGrid())
+                {
+                    if (base.AvailableDirections().Count == 1)
+                    {
+                        base._currentDirection = AvailableDirections()[0];
+                        base._ghost.GhostDeplacment = Entity.DirectionsValues[_currentDirection];
+                    }
+                    else
+                    {
+                        ChasePacMan();
+                    }
+
+                    /*
+                    if (base.NeedVectorUpdate())
+                    {
+                        ChasePacMan();
+                    }
+                    else if (base.AvailableDirections().Count > 1)
+                    {
+                        ChasePacMan();
+                    }*/
+                }
+
                 base.OnUpdate();
+            }
+
+            private void ChasePacMan()
+            {
+                base._currentDirection = BestDirectionToChoose();
+                base._ghost.GhostDeplacment = Entity.DirectionsValues[_currentDirection];
+            }
+
+            private Direction BestDirectionToChoose()
+            {
+                Direction direction;
+                int deltaX = ObjectContainer.PacMans[0].X - _ghost.X;
+                int deltaY = ObjectContainer.PacMans[0].Y - _ghost.Y;
+
+                System.Diagnostics.Debug.WriteLine($"deltaX : {deltaX} / deltaY : {deltaY}");
+                System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL);
+                System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL);
+
+
+                if (deltaX >= deltaY && ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL 
+                    && ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL || deltaY == 0)
+                {
+                    if (deltaX >= 0)
+                    {
+                        direction = Direction.East;
+                    }
+                    else
+                    {
+                        direction = Direction.West;
+                    }
+                }
+                else
+                {
+                    if (deltaY >= 0)
+                    {
+                        direction = Direction.South;
+                    }
+                    else
+                    {
+                        direction = Direction.North;
+                    }
+                }
+
+                /*
+                if (deltaX > 0 && ((int)CurrentDirection % 2 == 0))
+                {
+                    // move right
+                    direction = Direction.East;
+                }
+                else if (((int)CurrentDirection % 2 == 0))
+                {
+                    // move left
+                    direction = Direction.West;
+                }
+                else if (deltaY > 0)
+                {
+                    // move down
+                    direction = Direction.South;
+                }
+                else
+                {
+                    // move up
+                    direction = Direction.North;
+                }*/ 
+
+                return direction;
+            }
+            
+            private void FindDirection()
+            {
+                List<Direction> directions = base.AvailableDirections();
+                base._currentDirection = directions[0];
+                base._ghost.GhostDeplacment = Entity.DirectionsValues[directions[0]];
+            }
+
+            public override void Spawn()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Die()
+            {
+                throw new NotImplementedException();
             }
         }
     }
 
-    public abstract class GhostAI : DirectionRelation
+    public abstract class GhostAI : Entity
     {
         /// <summary>
         /// Attribut
@@ -471,11 +613,13 @@ namespace PacMan
         protected int _rayon;
         protected Ghost _ghost;
         protected Direction _currentDirection = Direction.East;
-
+        protected ObjectContainer _objectContainer;
         /// <summary>
         /// Propriety
         /// </summary>
         public Direction CurrentDirection => _currentDirection;
+        public override ObjectContainer ObjectContainer { get => _ghost.ObjectContainer; set => _objectContainer = value; }
+        public override Panel Body { get => _ghost.Body; set => _ghost.Body = value; }
 
         /// <summary>
         /// constructor
@@ -483,6 +627,11 @@ namespace PacMan
         public GhostAI(Ghost ghost)
         {
             this._ghost = ghost;
+            OnStart();
+        }
+
+        public override void OnStart()
+        {
             this._ghost.GhostDeplacment.X = Ghost.SPEED;
             this._ghost.GhostDeplacment.Y = 0;
         }
@@ -490,7 +639,7 @@ namespace PacMan
         /// <summary>
         /// On update function
         /// </summary>
-        public virtual void OnUpdate()
+        public override void OnUpdate()
         {
             MoveGhost();
         }
@@ -511,27 +660,25 @@ namespace PacMan
         {
             // this is basicly pythagor with DeltaX and DeltaY
             // thanks poland
-            return Math.Sqrt( Math.Pow(Math.Abs(G_pacMans[0].X - _ghost.X), 2) + Math.Pow(Math.Abs(G_pacMans[0].Y - _ghost.Y), 2)) <= _rayon;
+            return Math.Sqrt( Math.Pow(Math.Abs(ObjectContainer.PacMans[0].X - _ghost.X), 2) + Math.Pow(Math.Abs(ObjectContainer.PacMans[0].Y - _ghost.Y), 2)) <= _rayon;
         }
 
         /// <summary>
         /// the future location of ghost
         /// </summary>
         /// <returns>if ghost can move</returns>
-        protected bool GhostFutureLocation()
+        protected bool NeedVectorUpdate()
         {
-            if (CheckIfOnGrid())
+            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + _ghost.GhostDeplacment.Y / Ghost.SPEED, _ghost.X / GameForm.SIZEOFSQUARE + _ghost.GhostDeplacment.X / Ghost.SPEED] == GameMap.MapMeaning.WALL)
             {
-                if (_ghost.Map.GameMap[_ghost.Y / G_BYTESIZEOFSQUARE + _ghost.GhostDeplacment.Y / Ghost.SPEED, _ghost.X / G_BYTESIZEOFSQUARE + _ghost.GhostDeplacment.X / Ghost.SPEED] == Map.MapMeaning.WALL)
-                {
-                    this._ghost.GhostDeplacment.X = 0;
-                    this._ghost.GhostDeplacment.Y = 0; // bug here
-                    return false;
-                }
+                this._ghost.GhostDeplacment.X = 0;
+                this._ghost.GhostDeplacment.Y = 0;
+
+                return true;
             }
 
             // no need to update vector
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -540,35 +687,35 @@ namespace PacMan
         /// <returns>if on grid</returns>
         protected bool CheckIfOnGrid()
         {
-            return this._ghost.Y % G_BYTESIZEOFSQUARE == 0 && this._ghost.X % G_BYTESIZEOFSQUARE == 0;
+            return this._ghost.Y % GameForm.SIZEOFSQUARE == 0 && this._ghost.X % GameForm.SIZEOFSQUARE == 0;
         }
 
         /// <summary>
         /// Find you all the possible directions !
         /// 
-        /// !!!!!!!!! EXCLUDE CURRENT DIRECTION !!!!!!!!!
+        /// !!!!!!!!! EXCLUDE OPPOSIT OF CURRENT DIRECTION !!!!!!!!!
         /// </summary>
         /// <returns>the directions</returns>
         protected List<Direction> AvailableDirections()
         {
             List<Direction> vs = new List<Direction>();
 
-            if (_ghost.Map.GameMap[_ghost.Y / G_BYTESIZEOFSQUARE - 1, _ghost.X / G_BYTESIZEOFSQUARE] != Map.MapMeaning.WALL)
+            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE - 1, _ghost.X / GameForm.SIZEOFSQUARE] != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.North);
             }
 
-            if (_ghost.Map.GameMap[_ghost.Y / G_BYTESIZEOFSQUARE, _ghost.X / G_BYTESIZEOFSQUARE + 1] != Map.MapMeaning.WALL)
+            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.East);
             }
 
-            if (_ghost.Map.GameMap[_ghost.Y / G_BYTESIZEOFSQUARE + 1, _ghost.X / G_BYTESIZEOFSQUARE] != Map.MapMeaning.WALL)
+            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + 1, _ghost.X / GameForm.SIZEOFSQUARE] != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.South);
             }
 
-            if (_ghost.Map.GameMap[_ghost.Y / G_BYTESIZEOFSQUARE, _ghost.X / G_BYTESIZEOFSQUARE - 1] != Map.MapMeaning.WALL)
+            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.West);
             }
@@ -579,40 +726,23 @@ namespace PacMan
 
             return vs;
         }
-    }
 
-
-/************************************************  END OF GHOST AI CLASS  *****************************************************************************************************************/
-
-
-    /// <summary>
-    /// Relation class  
-    /// </summary>
-    public abstract class DirectionRelation
-    {
-        /// <summary>
-        /// Direction enum
-        /// </summary>
-        public enum Direction
+        protected new virtual void Dispose(bool disposing)
         {
-            North,
-            East,
-            South,
-            West
+            if (disposing)
+            {
+
+            }
+
+            base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// dictionary to where to go
-        /// </summary>
-        private static readonly Dictionary<Direction, Vector2> directionValue = new Dictionary<Direction, Vector2>(4)
+        public new void Dispose()
         {
-            {Direction.North, new Vector2(0, -Ghost.SPEED ) },
-            {Direction.East, new Vector2(Ghost.SPEED, 0 ) },
-            {Direction.South, new Vector2(0, Ghost.SPEED ) },
-            {Direction.West, new Vector2(-Ghost.SPEED, 0 ) }
-        };
+            this.Dispose(true);
 
-        protected static Dictionary<Direction, Vector2> DirectionValue => directionValue;
+            GC.SuppressFinalize(this);
+        }
     }
     #endregion Ghost AI
 }

@@ -23,7 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>7.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -50,35 +50,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataTransformation.cs" />
-    <Compile Include="Food.cs" />
-    <Compile Include="JsonConvertor.cs" />
-    <Compile Include="PrincipalForm.cs">
+    <Compile Include="Misc\DataTransformation.cs" />
+    <Compile Include="Controllers\GameController.cs" />
+    <Compile Include="Interfaces\IController.cs" />
+    <Compile Include="Interfaces\IEntity.cs" />
+    <Compile Include="Entities\Food.cs" />
+    <Compile Include="Interfaces\IUpdatableObject.cs" />
+    <Compile Include="Misc\JsonConvertor.cs" />
+    <Compile Include="GameView\GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="PrincipalForm.Designer.cs">
-      <DependentUpon>PrincipalForm.cs</DependentUpon>
+    <Compile Include="GameView\GameForm.Designer.cs">
+      <DependentUpon>GameForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Ghost.cs" />
-    <Compile Include="Map.cs" />
-    <Compile Include="PacMan.cs" />
+    <Compile Include="Entities\Ghost.cs" />
+    <Compile Include="Map\Map.cs" />
+    <Compile Include="Entities\PacMan.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Variables.cs" />
-    <Compile Include="Vector2.cs" />
-    <EmbeddedResource Include="PrincipalForm.resx">
-      <DependentUpon>PrincipalForm.cs</DependentUpon>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Misc\Variables.cs" />
+    <Compile Include="Vector\Vector2.cs" />
+    <EmbeddedResource Include="GameView\GameForm.resx">
+      <DependentUpon>GameForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="map.JSON" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -94,7 +98,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\pacman.png" />
+    <None Include="Resources\pacman0.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\pacman1.png" />
