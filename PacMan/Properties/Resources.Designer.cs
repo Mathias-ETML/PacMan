@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PacMan.Properties {
+namespace PacManGame.Properties {
     using System;
     
     

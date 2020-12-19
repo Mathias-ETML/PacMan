@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Vector.Vector2;
-using PacMan.Interfaces.IUpdatableObjectNS;
-using PacMan.Interfaces.IControllerNS;
+using PacManGame.Interfaces.IUpdatableObjectNS;
+using PacManGame.Interfaces.IControllerNS;
+using PacManGame.GameView;
+using PacManGame.Map;
 using System.Windows.Forms;
+using System.Drawing;
 
-namespace PacMan.Interfaces.IEntityNS
+namespace PacManGame.Interfaces.IEntityNS
 {
     /// <summary>
     /// IEntity interface
@@ -22,7 +25,7 @@ namespace PacMan.Interfaces.IEntityNS
     /// Entity class
     /// Mother class
     /// </summary>
-    public abstract class Entity : EntityDirection, IEntity
+    public abstract class Entity : EntityTeleportation, IEntity
     {
         /// <summary>
         /// Pixel to move when on update function occure
@@ -38,6 +41,11 @@ namespace PacMan.Interfaces.IEntityNS
         /// Body pannel
         /// </summary>
         public abstract Panel Body { get; set; }
+
+        /// <summary>
+        /// entity vector
+        /// </summary>
+        public abstract Vector2 EntityVector2 { get; set; }
 
         /// <summary>
         /// Spawn entity
@@ -59,23 +67,56 @@ namespace PacMan.Interfaces.IEntityNS
         /// </summary>
         public abstract void OnUpdate();// { }
 
+        /// <summary>
+        /// Tell you on wich type of case the entity is
+        /// </summary>
+        /// <returns>the type of case</returns>
+        protected Map.GameMap.MapMeaning OnWichCaseIsEntity()
+        {
+            return ObjectContainer.Map.GameMapMeaning[this.Body.Location.Y / GameForm.SIZEOFSQUARE, this.Body.Location.Y / GameForm.SIZEOFSQUARE];
+        }
+
+        /// <summary>
+        /// Teleport the entity in a relation with the teleportation pad
+        /// </summary>
+        protected void TeleportEntity()
+        {
+            Point lastPosition = this.Body.Location;
+            Point buffer = EntityTeleportation.EntityTeleportationDictionaryRelation[this.Body.Location];
+            this.Body.Location = new Point(buffer.X, buffer.Y);
+            Map.GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, ObjectContainer.Map.GameMapMeaning[buffer.Y / GameForm.SIZEOFSQUARE, buffer.X / GameForm.SIZEOFSQUARE], lastPosition.X, lastPosition.Y);
+            //BufferedGraphics
+        }
+
+        /// <summary>
+        /// Update the map for the entity
+        /// </summary>
+        public void OnUpdateMap()
+        {
+            GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, ObjectContainer.Map.GameMapMeaning[Body.Location.Y / GameForm.SIZEOFSQUARE, Body.Location.X / GameForm.SIZEOFSQUARE],
+                Body.Location.X - EntityVector2.X, Body.Location.Y - EntityVector2.Y);
+        }
+
         #region IDisposable Support
         /// <summary>
         /// disposed value
         /// </summary>
-        protected bool _disposedValue = false;
+        private bool _disposedValue = false;
 
         /// <summary>
         /// IDisposable implementaiton
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!_disposedValue)
             {
+                if (disposing)
+                {
 
+                }
             }
 
-            GC.SuppressFinalize(this);
+            _disposedValue = true;
         }
 
         /// <summary>
@@ -84,6 +125,7 @@ namespace PacMan.Interfaces.IEntityNS
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
 
@@ -115,6 +157,26 @@ namespace PacMan.Interfaces.IEntityNS
             {Direction.East, new Vector2(Entity.SPEED, 0)},
             {Direction.South, new Vector2(0, Entity.SPEED)},
             {Direction.West, new Vector2(-Entity.SPEED, 0)}
+        };
+    }
+
+    /// <summary>
+    /// Class for the teleportation relation
+    /// </summary>
+    public class EntityTeleportation : EntityDirection
+    {
+        // work with XY
+        // point to where to teleport the pacman
+        private static Point FirstLocation = new Point(40, 360);
+        private static Point FirstLocationEnd = new Point(640, 360);
+        private static Point SecondLocation = new Point(680, 360);
+        private static Point SecondLocationEnd = new Point(80, 360);
+
+        // get you on wich location to teleport pacman
+        public static readonly Dictionary<Point, Point> EntityTeleportationDictionaryRelation = new Dictionary<Point, Point>(2)
+        {
+            {FirstLocation, FirstLocationEnd },
+            {SecondLocation, SecondLocationEnd}
         };
     }
 }

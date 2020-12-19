@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
-using PacMan.Controllers.GameControllerNS;
+using PacManGame.Controllers.GameControllerNS;
 
-namespace PacMan
+namespace PacManGame
 {
     /// <summary>
     /// Default class

@@ -1,4 +1,4 @@
-﻿namespace PacMan.Interfaces.IUpdatableObjectNS
+﻿namespace PacManGame.Interfaces.IUpdatableObjectNS
 {
     /// <summary>
     /// IUpdatableObject interface

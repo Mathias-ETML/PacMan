@@ -1,4 +1,4 @@
-﻿namespace PacMan.Misc
+﻿namespace PacManGame.Misc
 {
     /// <summary>
     /// Global variables class

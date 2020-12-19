@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using JsonFileConvertor;
-using PacMan.GameView;
-using PacMan.Entities;
-using PacMan.Map;
+using PacManGame.GameView;
+using PacManGame.Entities;
+using PacManGame.Map;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
-namespace PacMan.Map
+namespace PacManGame.Map
 {
     public class GameMap : IDisposable
     {
@@ -32,7 +34,7 @@ namespace PacMan.Map
         /// </summary>
         public const int WIDTH = 19;
         public const int HEIGHT = 19;
-        private static Color _color;
+        private static SolidBrush _solidBrush = new SolidBrush(Color.Empty);
         private FoodMap _foodMap;
         private MapMeaning[,] _gameMap;
         private bool disposedValue = false; // Pour détecter les appels redondants
@@ -55,7 +57,7 @@ namespace PacMan.Map
         public GameMap()
         {
             // new json convertor made by me, its bad BUT it work and i am not a god
-            JsonConvertor jsonConvertor = new JsonConvertor(global::PacMan.Properties.Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
+            JsonConvertor jsonConvertor = new JsonConvertor(global::PacManGame.Properties.Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
 
             // getting the node because more simpler
             JsonConvertor.JsonNode jsonNode = jsonConvertor.GetElementByName("map");
@@ -63,13 +65,13 @@ namespace PacMan.Map
             // checking the heihgt
             if (jsonNode.GetDataByName<int>("height") != HEIGHT)
             {
-                throw new ArgumentException("the height in the json file is not the same as the height in the const field", "MAPWIDTH");
+                throw new ArgumentException("the height in the json file is not the same as the height in the const field", "MAPHEIGHT");
             }
 
             // checking the width
-            if (jsonNode.GetDataByName<int>("width") != HEIGHT)
+            if (jsonNode.GetDataByName<int>("width") != WIDTH)
             {
-                throw new ArgumentException("the height in the json file is not the same as the height in the const field", "MAPHEIGHT");
+                throw new ArgumentException("the height in the json file is not the same as the height in the const field", "MAPWIDTH");
             }
             // you never know
 
@@ -98,13 +100,16 @@ namespace PacMan.Map
         /// <param name="y"> y location </param>
         public static void DrawMapRectangle(Graphics graphics, MapMeaning mapMeaning, int x, int y, int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
         {
-            _color = _mapDictionary[mapMeaning];
+            _solidBrush.Color = _mapDictionary[mapMeaning];
 
-            // auto dispose
-            using (SolidBrush solidBrush = new SolidBrush(_color))
-            {
-                graphics.FillRectangle(solidBrush, x, y, width, height);
-            }
+            graphics.FillRectangle(_solidBrush, x, y, width, height);
+        }
+
+        public static void DrawRectangle(Graphics graphics, int x, int y, Color color,int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
+        {
+            _solidBrush.Color = color;
+
+            graphics.FillRectangle(_solidBrush, x, y, width, height);
         }
         #endregion Map drawing
 

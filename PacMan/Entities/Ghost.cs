@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Vector.Vector2;
-using PacMan.Interfaces.IEntityNS;
-using PacMan.Map;
-using PacMan.GameView;
-using PacMan.Interfaces.IControllerNS;
-using static PacMan.Misc.Variables;
+using PacManGame.Interfaces.IEntityNS;
+using PacManGame.Map;
+using PacManGame.GameView;
+using PacManGame.Interfaces.IControllerNS;
+using static PacManGame.Misc.Variables;
 
 /*
  * TODO : EXCEPTIONS WHEN SOMETHING GOES WRONG
@@ -15,9 +15,8 @@ using static PacMan.Misc.Variables;
  * TODO : IA for ghosts
  * TODO : REGIONS
  * 
- * todo : controller
  */
-namespace PacMan.Entities
+namespace PacManGame.Entities
 {
     public class Ghost : Entity
     {
@@ -48,7 +47,7 @@ namespace PacMan.Entities
 
         #region proprieties
         public override Panel Body { get => _body; set => _body = value; }
-        public Vector2 GhostDeplacment
+        public override Vector2 EntityVector2
         {
             get => _deplacementGhost;
             set
@@ -156,22 +155,35 @@ namespace PacMan.Entities
         {
             if (_body != null && _AI != null)
             {
+                switch (this.OnWichCaseIsEntity())
+                {
+                    case GameMap.MapMeaning.TELEPORT:
+                        base.TeleportEntity();
+                        return;
+
+                    default:
+                        break;
+                }
+
                 _AI.OnUpdate();
-                this.UpdateMap();
+                //this.UpdateMap();
             }
         }
+
+
         #endregion Ghost update
 
         #region MapUpdate
-        public void UpdateMap()
+        public new void OnUpdateMap()
         {
-            DrawMap();
+            base.OnUpdateMap();
             DrawFood();
         }
 
         private void DrawMap()
         {
-            GameMap.DrawMapRectangle(this._windowGameGraphics, _map.GameMapMeaning[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementGhost.X, this.Y - this._deplacementGhost.Y);
+            GameMap.DrawMapRectangle(this._windowGameGraphics, _map.GameMapMeaning[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], 
+                this.X - _deplacementGhost.X, + this.Y - _deplacementGhost.Y);
         }
 
         private void DrawFood()
@@ -213,9 +225,6 @@ namespace PacMan.Entities
                     break;
                 case GameMap.MapMeaning.BIGFOOD:
                     Food.DrawFood(_windowGameGraphics, Food.FoodMeaning.BIGFOOD, (this.X + x), (this.Y + y));
-                    break;
-                case GameMap.MapMeaning.TELEPORT:
-                    // hehe yes
                     break;
                 default:
                     break;
@@ -371,12 +380,16 @@ namespace PacMan.Entities
             {
                 if (CheckIfOnGrid())
                 {
+
+
                     NeedVectorUpdate();
                     FindRandomDirection();
                 }
 
                 base.OnUpdate();
             }
+
+
 
             /// <summary>
             /// Find a random direction 
@@ -393,12 +406,12 @@ namespace PacMan.Entities
                     }
 
                     base._currentDirection = directions[0];
-                    base._ghost.GhostDeplacment = Entity.DirectionsValues[directions[0]];
+                    base._ghost.EntityVector2 = DirectionsValues[directions[0]];
                 }
                 else
                 {
                     base._currentDirection = directions[_rnd.Next(0, directions.Count)];
-                    base._ghost.GhostDeplacment = Entity.DirectionsValues[base._currentDirection]; 
+                    base._ghost.EntityVector2 = DirectionsValues[base._currentDirection]; 
                     // i made a big mistake, i got the pointer to the object in the dictionary
                     // sometime i want to manage myself the pointers
                 }
@@ -499,7 +512,7 @@ namespace PacMan.Entities
                     if (base.AvailableDirections().Count == 1)
                     {
                         base._currentDirection = AvailableDirections()[0];
-                        base._ghost.GhostDeplacment = Entity.DirectionsValues[_currentDirection];
+                        base._ghost.EntityVector2 = DirectionsValues[_currentDirection];
                     }
                     else
                     {
@@ -523,7 +536,7 @@ namespace PacMan.Entities
             private void ChasePacMan()
             {
                 base._currentDirection = BestDirectionToChoose();
-                base._ghost.GhostDeplacment = Entity.DirectionsValues[_currentDirection];
+                base._ghost.EntityVector2 = DirectionsValues[_currentDirection];
             }
 
             private Direction BestDirectionToChoose()
@@ -590,7 +603,7 @@ namespace PacMan.Entities
             {
                 List<Direction> directions = base.AvailableDirections();
                 base._currentDirection = directions[0];
-                base._ghost.GhostDeplacment = Entity.DirectionsValues[directions[0]];
+                base._ghost.EntityVector2 = DirectionsValues[directions[0]];
             }
 
             public override void Spawn()
@@ -620,6 +633,15 @@ namespace PacMan.Entities
         public Direction CurrentDirection => _currentDirection;
         public override ObjectContainer ObjectContainer { get => _ghost.ObjectContainer; set => _objectContainer = value; }
         public override Panel Body { get => _ghost.Body; set => _ghost.Body = value; }
+        public override Vector2 EntityVector2
+        {
+            get => _ghost.EntityVector2;
+            set
+            {
+                _ghost.EntityVector2.X = value.X;
+                _ghost.EntityVector2.Y = value.Y;
+            }
+        }
 
         /// <summary>
         /// constructor
@@ -632,8 +654,8 @@ namespace PacMan.Entities
 
         public override void OnStart()
         {
-            this._ghost.GhostDeplacment.X = Ghost.SPEED;
-            this._ghost.GhostDeplacment.Y = 0;
+            this._ghost.EntityVector2.X = Ghost.SPEED;
+            this._ghost.EntityVector2.Y = 0;
         }
 
         /// <summary>
@@ -649,7 +671,7 @@ namespace PacMan.Entities
         /// </summary>
         protected void MoveGhost()
         {
-            _ghost.Location = new Point(_ghost.X + _ghost.GhostDeplacment.X, _ghost.Y + _ghost.GhostDeplacment.Y);
+            _ghost.Location = new Point(_ghost.X + _ghost.EntityVector2.X, _ghost.Y + _ghost.EntityVector2.Y); // wierd bug, when a ghost move, it erase the last graphic.fillRectangle, in 
         }
 
         /// <summary>
@@ -669,10 +691,10 @@ namespace PacMan.Entities
         /// <returns>if ghost can move</returns>
         protected bool NeedVectorUpdate()
         {
-            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + _ghost.GhostDeplacment.Y / Ghost.SPEED, _ghost.X / GameForm.SIZEOFSQUARE + _ghost.GhostDeplacment.X / Ghost.SPEED] == GameMap.MapMeaning.WALL)
+            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.Y / Ghost.SPEED, _ghost.X / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.X / Ghost.SPEED] == GameMap.MapMeaning.WALL)
             {
-                this._ghost.GhostDeplacment.X = 0;
-                this._ghost.GhostDeplacment.Y = 0;
+                this._ghost.EntityVector2.X = 0;
+                this._ghost.EntityVector2.Y = 0;
 
                 return true;
             }

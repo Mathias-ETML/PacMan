@@ -142,7 +142,7 @@ namespace JsonFileConvertor
 
                 if (!TryCreateElementByName(nodes[i]) && showError)
                 {
-                    throw new ArgumentException($"A json node was note created with the name of {nodes[i]} at position {i}");
+                    throw new ArgumentException($"A json node was not created with the name of {nodes[i]} at position {i}");
                 }
             }
         }
@@ -2075,12 +2075,12 @@ namespace JsonFileConvertor
                     {
                         item.Dispose();
                     }
-
-                    this._rawData = null;
-                    this._jsonNodesList = null;
-                    this._jsonNodesNamesDico = null;
-                    this._jsonNodesNamesList = null;
                 }
+
+                this._rawData = null;
+                this._jsonNodesList = null;
+                this._jsonNodesNamesDico = null;
+                this._jsonNodesNamesList = null;
 
                 _disposedValue = true;
             }

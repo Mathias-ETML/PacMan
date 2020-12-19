@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using PacMan.Interfaces.IControllerNS;
-using PacMan.Entities;
+using PacManGame.Interfaces.IControllerNS;
+using PacManGame.Entities;
 
 
-namespace PacMan.Controllers.GameControllerNS
+namespace PacManGame.Controllers.GameControllerNS
 {
     /// <summary>
     /// Game controller class
@@ -35,6 +35,7 @@ namespace PacMan.Controllers.GameControllerNS
         {
             OnUpdateGhost();
             OnUpdatePacMan();
+            OnUpdateMap();
         }
 
         public override void OnUpdateGhost()
@@ -47,9 +48,22 @@ namespace PacMan.Controllers.GameControllerNS
 
         public override void OnUpdatePacMan()
         {
-            foreach (Entities.PacMan pc in ObjectContainer.PacMans)
+            foreach (PacMan pc in ObjectContainer.PacMans)
             {
                 pc.OnUpdate();
+            }
+        }
+
+        public override void OnUpdateMap()
+        {
+            foreach (Ghost gh in ObjectContainer.Ghosts)
+            {
+                gh.OnUpdateMap();
+            }
+
+            foreach (PacMan pc in ObjectContainer.PacMans)
+            {
+                pc.OnUpdateMap();
             }
         }
 

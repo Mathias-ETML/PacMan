@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using PacMan.Interfaces.IUpdatableObjectNS;
-using PacMan.Entities;
-using PacMan.Map;
-using PacMan.GameView;
-using PacMan.Interfaces.IEntityNS;
+using PacManGame.Interfaces.IUpdatableObjectNS;
+using PacManGame.Entities;
+using PacManGame.Map;
+using PacManGame.GameView;
+using PacManGame.Interfaces.IEntityNS;
 using System.Collections;
 
-namespace PacMan.Interfaces.IControllerNS
+namespace PacManGame.Interfaces.IControllerNS
 {
     /// <summary>
     /// IObjectContainer Interface
@@ -18,7 +18,7 @@ namespace PacMan.Interfaces.IControllerNS
     {
         List<Ghost> Ghosts { get; set; }
 
-        List<Entities.PacMan> PacMans { get; set; }
+        List<PacMan> PacMans { get; set; }
 
         GameMap Map { get; set; }
 
@@ -41,7 +41,7 @@ namespace PacMan.Interfaces.IControllerNS
         /// Properties
         /// </summary>
         public List<Ghost> Ghosts { get; set; }
-        public List<Entities.PacMan> PacMans { get; set; }
+        public List<PacMan> PacMans { get; set; }
         public GameMap Map { get; set; }
         public GameForm GameForm { get; set; }
         public Graphics GameFormPanelGraphics { get; set; }
@@ -82,6 +82,8 @@ namespace PacMan.Interfaces.IControllerNS
                     {
                         gh.Dispose();
                     }
+
+                    GameFormPanelGraphics.Dispose();
                 }
 
                 GameFormPanelGraphics = null;
@@ -237,6 +239,8 @@ namespace PacMan.Interfaces.IControllerNS
         public abstract void OnUpdateGhost();
 
         public abstract void OnUpdatePacMan();
+
+        public abstract void OnUpdateMap();
 
         #region IDisposable Support
         protected new virtual void Dispose(bool disposing)

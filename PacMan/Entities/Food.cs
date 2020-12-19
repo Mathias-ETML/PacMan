@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using PacMan.GameView;
+using PacManGame.GameView;
 
-namespace PacMan.Entities
+namespace PacManGame.Entities
 {
     /// <summary>
     /// Food class
@@ -62,12 +62,13 @@ namespace PacMan.Entities
             }
         }
 
+
         /// <summary>
         /// Draw food
         /// </summary>
         /// <param name="graphics">the graphics of your object, from this case its a panel</param>
         /// <param name="type">the type of food you want</param>
-        /// <param name="x">c location</param>
+        /// <param name="x">x location</param>
         /// <param name="y">y location</param>
         public static void DrawFood(Graphics graphics, FoodMeaning type, int x, int y)
         {
@@ -75,6 +76,7 @@ namespace PacMan.Entities
             graphics.FillEllipse(FoodColor.SolidBrush, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (byte)type, (GameForm.SIZEOFSQUARE / 10) * (byte)type);
         }
         #endregion Food
+
 
         #region memory managment
         /// <summary>

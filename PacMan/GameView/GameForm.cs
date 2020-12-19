@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using PacMan.Map;
-using PacMan.Entities;
-using PacMan.Interfaces.IControllerNS;
+using PacManGame.Map;
+using PacManGame.Entities;
+using PacManGame.Interfaces.IControllerNS;
 
-namespace PacMan.GameView
+namespace PacManGame.GameView
 {
     public partial class GameForm : Form
     {
@@ -26,6 +26,8 @@ namespace PacMan.GameView
         {
             this._objectContainer = objectContainer;
 
+            this.Location = new Point(0, 0);
+
             InitializeComponent();
         }
         #endregion Construcotr
@@ -34,12 +36,12 @@ namespace PacMan.GameView
         public void OnStart()
         {
             // init the first painting of the map
-            this.panPanGame.Paint += DrawFoodMap;
+            this.panPanGame.Paint += DrawMapAndFood;
         }
         #endregion OnStart
 
         #region food map application
-        private void DrawFoodMap(object sender, PaintEventArgs e)
+        private void DrawMapAndFood(object sender, PaintEventArgs e)
         {
             Graphics graphics = e.Graphics;
 
@@ -49,11 +51,14 @@ namespace PacMan.GameView
                 {
                     GameMap.DrawMapRectangle(graphics, _objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
 
-                    _objectContainer.Map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)_objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
+                    if (_objectContainer.Map.GameMapMeaning[y, x] == Map.GameMap.MapMeaning.FOOD || _objectContainer.Map.GameMapMeaning[y, x] == Map.GameMap.MapMeaning.BIGFOOD)
+                    {
+                        _objectContainer.Map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)_objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
+                    }
                 }
             }
 
-            ((Panel)sender).Paint -= DrawFoodMap;
+            ((Panel)sender).Paint -= DrawMapAndFood;
         }
         #endregion food map application
 

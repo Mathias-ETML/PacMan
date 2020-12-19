@@ -4,11 +4,11 @@ using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using Vector.Vector2;
-using PacMan.Interfaces.IEntityNS;
-using PacMan.Map;
-using PacMan.GameView;
-using PacMan.Interfaces.IControllerNS;
-using static PacMan.Misc.Variables;
+using PacManGame.Interfaces.IEntityNS;
+using PacManGame.Map;
+using PacManGame.GameView;
+using PacManGame.Interfaces.IControllerNS;
+using static PacManGame.Misc.Variables;
 
 // TODO : GHOST EATING
 
@@ -26,7 +26,7 @@ using static PacMan.Misc.Variables;
  * PS : FIX THEM MATHAIS PLEASE
  */
 
-namespace PacMan.Entities
+namespace PacManGame.Entities
 {
     /// <summary>
     /// PacMan class
@@ -41,7 +41,7 @@ namespace PacMan.Entities
         private GameMap _map;
         private Graphics _pacManGraphics;
         private Graphics _windowGameGraphics;
-        private int _pacManAnimationInterval = global::PacMan.Controllers.GameControllerNS.GameController.TIMETOUPDATE * 2;
+        private int _pacManAnimationInterval = global::PacManGame.Controllers.GameControllerNS.GameController.TIMETOUPDATE * 2;
         private Timer _onAnimationUpdate;
         private Timer _endGhostEating;
         private const int _GHOSTEATINGTIME = 7000; // in ms
@@ -76,7 +76,15 @@ namespace PacMan.Entities
         }
 
         public static int SpeedOfPacMan { get => SPEEDOFPACMAN; }
-        public Vector2 GetDeplacementPacMan { get => _deplacementPacMan; }
+        public override Vector2 EntityVector2
+        {
+            get => _deplacementPacMan;
+            set
+            {
+                this._deplacementPacMan.X = value.X;
+                this._deplacementPacMan.Y = value.Y;
+            }
+        }
 
         public Mouth.Direction ActualMouthDirection { get =>_actualMouthDirection; }
         public Mouth.Direction LastAutorizedDirection { get => _lastAuthorizedDirection; }
@@ -229,15 +237,14 @@ namespace PacMan.Entities
         {
             if (_body != null && !_disposed)
             {
-                switch (OnWichCaseIsPacMan())
+                switch (base.OnWichCaseIsEntity())
                 {
                     case GameMap.MapMeaning.TELEPORT:
 
                         // here what we do is we check if it's on the grid, so we are sure that the pacman is on a teleporation case
                         if (CheckIfOnGrid())
                         {
-                            TeleportPacMan();
-                            UpdateTeleportation();
+                            base.TeleportEntity();
                         }
                         break;
 
@@ -255,7 +262,7 @@ namespace PacMan.Entities
                 PacManFutureLocation();
             }
 
-            this.UpdateMap();
+            //this.UpdateMap();
         }
 
         #region PacMan body update
@@ -352,122 +359,6 @@ namespace PacMan.Entities
         }
         #endregion PacMan direction update;
 
-        #region PacMan map update
-        /// <summary>
-        /// Update the graphics of the map
-        /// </summary>
-        public void UpdateMap()
-        {
-            // Map.DrawMapRectangle(this._windowGameGraphics, _map.GameMap[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementPacMan.X, this.Y - this._deplacementPacMan.Y);
-
-
-            /*
-            switch (_lastAuthorizedDirection)
-            {
-                case Mouth.Position.North:
-                    Map.DrawMapRectangle(this._windowGameGraphics, _map.GameMap[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementPacMan.X, this.Y - this._deplacementPacMan.Y, GameForm.SIZEOFSQUARE, SPEEDOFPACMAN);
-                    break;
-                case Mouth.Position.East:
-                    Map.DrawMapRectangle(this._windowGameGraphics, _map.GameMap[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementPacMan.X, this.Y - this._deplacementPacMan.Y, SPEEDOFPACMAN, GameForm.SIZEOFSQUARE);
-                    break;
-                case Mouth.Position.South:
-                    Map.DrawMapRectangle(this._windowGameGraphics, _map.GameMap[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementPacMan.X, this.Y - this._deplacementPacMan.Y, SPEEDOFPACMAN, GameForm.SIZEOFSQUARE);
-                    break;
-                case Mouth.Position.West:
-                    Map.DrawMapRectangle(this._windowGameGraphics, _map.GameMap[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], this.X - this._deplacementPacMan.X, this.Y - this._deplacementPacMan.Y, SPEEDOFPACMAN, GameForm.SIZEOFSQUARE);
-                    break;
-                default:
-                    break;
-            }*/
-
-
-            // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
-            // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
-            // TODO : NEED TO RE-DRAW THE FOOD WHEN WE EAT IT HALF WAY
-            
-            switch (_lastAuthorizedDirection)
-            {
-                case Mouth.Direction.North:
-
-                    // TODO : explain why
-                    GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[(PacManLocation.Y / GameForm.SIZEOFSQUARE) + 1, (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y + GameForm.SIZEOFSQUARE - PacManLocation.Y % GameForm.SIZEOFSQUARE);
-                    //Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / GameForm.SIZEOFSQUARE) + 1, (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y + GameForm.SIZEOFSQUARE);
-                    break;
-
-                case Mouth.Direction.East:
-
-                    // TODO : explain why
-                    //Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / GameForm.SIZEOFSQUARE), (PacManLocation.X / GameForm.SIZEOFSQUARE) - 1], PacManLocation.X - (PacManLocation.X % GameForm.SIZEOFSQUARE), PacManLocation.Y);
-                    
-                    //if (_map.GameMap[PacManLocation.Y / GameForm.SIZEOFSQUARE, (PacManLocation.X / GameForm.SIZEOFSQUARE) - 1] != Map.MapMeaning.WALL && _map.GameMap[PacManLocation.Y / GameForm.SIZEOFSQUARE, (PacManLocation.X / GameForm.SIZEOFSQUARE) - 1] != Map.MapMeaning.TELEPORT)
-                    if (CheckIfOnGrid())
-                    {
-                        GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, (PacManLocation.X / GameForm.SIZEOFSQUARE) - 1], PacManLocation.X - GameForm.SIZEOFSQUARE, PacManLocation.Y);
-                    }
-                    else
-                    {
-                        GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X - PacManLocation.X % GameForm.SIZEOFSQUARE, PacManLocation.Y);
-                    }
-                    return;
-
-                case Mouth.Direction.South:
-
-                    // TODO : explain why
-                    //if (_map.GameMap[(PacManLocation.Y / GameForm.SIZEOFSQUARE) - 1, (PacManLocation.X / GameForm.SIZEOFSQUARE)] != Map.MapMeaning.WALL)
-                    if (CheckIfOnGrid())
-                    {
-                        GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[(PacManLocation.Y / GameForm.SIZEOFSQUARE) - 1, (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - GameForm.SIZEOFSQUARE);
-                    }
-                    else
-                    {
-                        GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[(PacManLocation.Y / GameForm.SIZEOFSQUARE), (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y - PacManLocation.Y % GameForm.SIZEOFSQUARE);
-                    }
-
-                    return;
-
-                case Mouth.Direction.West:
-
-                    // TODO : explain why
-                    //Map.DrawMapRectangle(_windowGameGraphics, _map.GameMap[(PacManLocation.Y / GameForm.SIZEOFSQUARE) + 1, (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y + GameForm.SIZEOFSQUARE - PacManLocation.Y % GameForm.SIZEOFSQUARE);
-                    GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[(PacManLocation.Y / GameForm.SIZEOFSQUARE), (PacManLocation.X / GameForm.SIZEOFSQUARE) + 1], PacManLocation.X + GameForm.SIZEOFSQUARE - PacManLocation.X % GameForm.SIZEOFSQUARE, PacManLocation.Y);
-                    break;
-                default:
-                    break;
-            }
-
-            // update the actual case of the map
-            GameMap.DrawMapRectangle(_windowGameGraphics, _map.GameMapMeaning[(PacManLocation.Y / GameForm.SIZEOFSQUARE), (PacManLocation.X / GameForm.SIZEOFSQUARE)], PacManLocation.X, PacManLocation.Y);
-        }
-        #endregion PacMan map update
-
-        #region PacMan teleportation
-        /// <summary>
-        /// Update the teleportation case
-        /// </summary>
-        /// <param name="sender">in our case, the panel of the map</param>
-        /// <param name="e"></param>
-        public void UpdateTeleportation()
-        {
-            // get the original point with some magic code
-            Point buffer = TeleportRelation.WhereToTeleportPacMan.FirstOrDefault(x => x.Value == PacManLocation).Key;
-
-            // redraw the teleportation pad on the original point
-            _windowGameGraphics.FillRectangle(new SolidBrush(GameMap.MapDictionary[_map.GameMapMeaning[buffer.Y / GameForm.SIZEOFSQUARE, buffer.X / GameForm.SIZEOFSQUARE]]), 
-
-            // create a new rectangle
-            new Rectangle(buffer.X, buffer.Y, GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE));
-        }
-        
-        /// <summary>
-        /// Teleport the pacman in a relation with the teleportation pad
-        /// </summary>
-        public void TeleportPacMan()
-        {
-            Point buffer = TeleportRelation.WhereToTeleportPacMan[PacManLocation];
-            SetPacManLocation(buffer.X, buffer.Y);
-        }
-        #endregion PacMan teleportation
-
         #region PacMan miscellaneous
         /// <summary>
         /// Check if on grid
@@ -498,15 +389,6 @@ namespace PacMan.Entities
 
             // if not on the grid the pacman will not hit a wall
             SetPacManLocation(PacManLocation.X + _deplacementPacMan.X, PacManLocation.Y + _deplacementPacMan.Y);
-        }
-
-        /// <summary>
-        /// Get you on wich case the pacman is
-        /// </summary>
-        /// <returns>on wich case the pacman is</returns>
-        private GameMap.MapMeaning OnWichCaseIsPacMan()
-        {
-            return _map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE];
         }
 
         /// <summary>
@@ -619,25 +501,7 @@ namespace PacMan.Entities
 
         #region PacMan classes
         #region PacMan teleportation
-        /// <summary>
-        /// Class for the teleportation relation
-        /// </summary>
-        internal static class TeleportRelation
-        {
-            // work with XY
-            // point to where to teleport the pacman
-            private static Point FirstLocation = new Point(40, 360);
-            private static Point FirstLocationEnd = new Point(640, 360);
-            private static Point SecondLocation = new Point(680, 360);
-            private static Point SecondLocationEnd = new Point(80, 360);
 
-            // get you on wich location to teleport pacman
-            public static readonly Dictionary<Point, Point> WhereToTeleportPacMan = new Dictionary<Point, Point>(2)
-            {
-                {FirstLocation, FirstLocationEnd },
-                {SecondLocation, SecondLocationEnd}
-            };
-        }
         #endregion PacMan teleportation
 
         #region PacMan mouth

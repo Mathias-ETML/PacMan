@@ -1,4 +1,4 @@
-﻿namespace PacMan.GameView
+﻿namespace PacManGame.GameView
 {
     partial class GameForm
     {
@@ -40,7 +40,7 @@
             this.panPanGame.Name = "panPanGame";
             this.panPanGame.Size = new System.Drawing.Size(760, 760);
             this.panPanGame.TabIndex = 0;
-            this.panPanGame.Paint += new System.Windows.Forms.PaintEventHandler(this.DrawFoodMap);
+            this.panPanGame.Paint += new System.Windows.Forms.PaintEventHandler(this.DrawMapAndFood);
             // 
             // label1
             // 
