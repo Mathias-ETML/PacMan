@@ -360,14 +360,7 @@ namespace PacManGame.Entities
         #endregion PacMan direction update;
 
         #region PacMan miscellaneous
-        /// <summary>
-        /// Check if on grid
-        /// </summary>
-        /// <returns>if on grid</returns>
-        public bool CheckIfOnGrid()
-        {
-            return this.Y % GameForm.SIZEOFSQUARE == 0 && this.X % GameForm.SIZEOFSQUARE == 0;
-        }
+
 
         /// <summary>
         /// Check if the pacman future location is not a wall

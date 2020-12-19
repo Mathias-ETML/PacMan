@@ -73,7 +73,7 @@ namespace PacManGame.Interfaces.IEntityNS
         /// <returns>the type of case</returns>
         protected Map.GameMap.MapMeaning OnWichCaseIsEntity()
         {
-            return ObjectContainer.Map.GameMapMeaning[this.Body.Location.Y / GameForm.SIZEOFSQUARE, this.Body.Location.Y / GameForm.SIZEOFSQUARE];
+            return ObjectContainer.Map.GameMapMeaning[this.Body.Location.Y / GameForm.SIZEOFSQUARE, this.Body.Location.X / GameForm.SIZEOFSQUARE];
         }
 
         /// <summary>
@@ -81,11 +81,22 @@ namespace PacManGame.Interfaces.IEntityNS
         /// </summary>
         protected void TeleportEntity()
         {
+
             Point lastPosition = this.Body.Location;
             Point buffer = EntityTeleportation.EntityTeleportationDictionaryRelation[this.Body.Location];
             this.Body.Location = new Point(buffer.X, buffer.Y);
             Map.GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, ObjectContainer.Map.GameMapMeaning[buffer.Y / GameForm.SIZEOFSQUARE, buffer.X / GameForm.SIZEOFSQUARE], lastPosition.X, lastPosition.Y);
+         
             //BufferedGraphics
+        }
+
+        /// <summary>
+        /// Check if on grid
+        /// </summary>
+        /// <returns>if on grid</returns>
+        protected bool CheckIfOnGrid()
+        {
+            return this.Body.Location.Y % GameForm.SIZEOFSQUARE == 0 && this.Body.Location.X % GameForm.SIZEOFSQUARE == 0;
         }
 
         /// <summary>

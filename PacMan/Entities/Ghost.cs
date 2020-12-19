@@ -158,8 +158,13 @@ namespace PacManGame.Entities
                 switch (this.OnWichCaseIsEntity())
                 {
                     case GameMap.MapMeaning.TELEPORT:
-                        base.TeleportEntity();
-                        return;
+
+                        if (base.CheckIfOnGrid())
+                        {
+                            base.TeleportEntity();
+                            return;
+                        }
+                        break;
 
                     default:
                         break;
@@ -178,12 +183,6 @@ namespace PacManGame.Entities
         {
             base.OnUpdateMap();
             DrawFood();
-        }
-
-        private void DrawMap()
-        {
-            GameMap.DrawMapRectangle(this._windowGameGraphics, _map.GameMapMeaning[this.Y / GameForm.SIZEOFSQUARE, this.X / GameForm.SIZEOFSQUARE], 
-                this.X - _deplacementGhost.X, + this.Y - _deplacementGhost.Y);
         }
 
         private void DrawFood()
@@ -233,14 +232,6 @@ namespace PacManGame.Entities
         #endregion MapUpdate
 
         #region GhostMisc
-        /// <summary>
-        /// Check if on grid
-        /// </summary>
-        /// <returns>if on grid</returns>
-        public bool CheckIfOnGrid()
-        {
-            return this.Y % GameForm.SIZEOFSQUARE == 0 && this.X % GameForm.SIZEOFSQUARE == 0;
-        }
 
         public void SetGhostLocation(int x, int y)
         {
@@ -701,15 +692,6 @@ namespace PacManGame.Entities
 
             // no need to update vector
             return false;
-        }
-
-        /// <summary>
-        /// Check if on grid
-        /// </summary>
-        /// <returns>if on grid</returns>
-        protected bool CheckIfOnGrid()
-        {
-            return this._ghost.Y % GameForm.SIZEOFSQUARE == 0 && this._ghost.X % GameForm.SIZEOFSQUARE == 0;
         }
 
         /// <summary>

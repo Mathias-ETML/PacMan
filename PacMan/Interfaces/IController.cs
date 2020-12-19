@@ -73,7 +73,7 @@ namespace PacManGame.Interfaces.IControllerNS
                     Map.Dispose();
                     GameForm.Dispose();
 
-                    foreach (Entities.PacMan pc in PacMans)
+                    foreach (PacMan pc in PacMans)
                     {
                         pc.Dispose();
                     }
@@ -107,12 +107,12 @@ namespace PacManGame.Interfaces.IControllerNS
         /// <returns>entity</returns>
         public IEnumerator<Entity> GetEnumerator()
         {
-            foreach (Entities.PacMan item in PacMans)
+            foreach (PacMan item in PacMans)
             {
                 yield return item as Entity;
             }
 
-            foreach (Entities.Ghost item in Ghosts)
+            foreach (Ghost item in Ghosts)
             {
                 yield return item as Entity;
             }
@@ -124,12 +124,12 @@ namespace PacManGame.Interfaces.IControllerNS
         /// <returns>entity</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            foreach (Entities.PacMan item in PacMans)
+            foreach (PacMan item in PacMans)
             {
                 yield return item as Entity;
             }
 
-            foreach (Entities.Ghost item in Ghosts)
+            foreach (Ghost item in Ghosts)
             {
                 yield return item as Entity;
             }
@@ -202,11 +202,11 @@ namespace PacManGame.Interfaces.IControllerNS
 
             for (int i = 0; i < NUMBEROFMAXIMUMPACMANWHILEIAMTOOLAZYTODOTCPIPPLEMENTATION; i++)
             {
-                ObjectContainer.PacMans.Add(new Entities.PacMan(40, 40, ObjectContainer));
+                ObjectContainer.PacMans.Add(new PacMan(40, 40, ObjectContainer));
             }
 
-            ObjectContainer.Ghosts.Add(new Ghost(0 * GameView.GameForm.SIZEOFSQUARE + GameView.GameForm.SIZEOFSQUARE, GameView.GameForm.SIZEOFSQUARE, Ghost.Type.BLUE, ObjectContainer));
-            ObjectContainer.Ghosts.Add(new Ghost(1 * GameView.GameForm.SIZEOFSQUARE + GameView.GameForm.SIZEOFSQUARE, GameView.GameForm.SIZEOFSQUARE, Ghost.Type.RED, ObjectContainer));
+            ObjectContainer.Ghosts.Add(new Ghost(0 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.BLUE, ObjectContainer));
+            ObjectContainer.Ghosts.Add(new Ghost(1 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.RED, ObjectContainer));
 
             /*
             for (int i = 0; i < NUMBEROFMAXIMUMGHOST; i++)
