@@ -46,8 +46,8 @@ namespace PacManGame.Entities
         private Timer _endGhostEating;
         private const int _GHOSTEATINGTIME = 7000; // in ms
         private readonly Color _pacManBodyColor = Color.Yellow;
-        private Mouth.Direction _lastAuthorizedDirection = Mouth.Direction.North;
-        private Mouth.Direction _actualMouthDirection = Mouth.Direction.North;
+        private Direction _lastAuthorizedDirection = Direction.North;
+        private Direction _currentDirection = Direction.North;
         private bool _disposed = false;
         private bool _isPacManMouthOpen = true;
         private bool _canPacManEatGhost = false;
@@ -69,7 +69,7 @@ namespace PacManGame.Entities
             set => _body.Location = new Point(value.X, value.Y);
         }
 
-        public Point GetPacManLocation => PacManLocation;
+        public Point GetPacManLocation { get => PacManLocation; }
         public void SetPacManLocation(int x, int y)
         {
             PacManLocation = new Point(x, y);
@@ -86,8 +86,8 @@ namespace PacManGame.Entities
             }
         }
 
-        public Mouth.Direction ActualMouthDirection { get =>_actualMouthDirection; }
-        public Mouth.Direction LastAutorizedDirection { get => _lastAuthorizedDirection; }
+        public override Direction CurrentDirection { get => _currentDirection; set => _currentDirection = value; }
+        public Direction LastAutorizedDirection { get => _lastAuthorizedDirection; }
 
         public ulong PlayerScore { get => _playerScore; }
         private void AddPlayerPoints(int points)
@@ -176,7 +176,7 @@ namespace PacManGame.Entities
         /// Draw the pacman mouth in the North, East, South, West
         /// </summary>
         /// <param name="position">the direction</param>
-        private void DrawPacManMouth(Mouth.Direction position)
+        private void DrawPacManMouth(Direction position)
         {
             _pacManGraphics.DrawPolygon(new Pen(Color.Black, 1), Mouth.relation[position]);
 
@@ -220,7 +220,7 @@ namespace PacManGame.Entities
                 }
                 else
                 {
-                    DrawPacManMouth(_actualMouthDirection);
+                    DrawPacManMouth(_currentDirection);
                     _isPacManMouthOpen = true;
                 }
             }
@@ -271,7 +271,7 @@ namespace PacManGame.Entities
         /// TODO : WITH DEGREE
         /// </summary>
         /// <param name="position"> in what position do you want the packman mout to be </param>
-        public void RotatePacManBody(Mouth.Direction direction)
+        public void RotatePacManBody(Direction direction)
         {
             DrawPacManBody();
 
@@ -287,7 +287,7 @@ namespace PacManGame.Entities
                 _lastAuthorizedDirection = direction;
             }
 
-            _actualMouthDirection = direction;
+            _currentDirection = direction;
         }
         #endregion PacMan body update
         #endregion PacMan update
@@ -298,7 +298,7 @@ namespace PacManGame.Entities
         /// </summary>
         /// <param name="nextDirection">the futre direction of the pacman</param>
         /// <returns></returns>
-        private bool CheckIfPackManCanMoveWhenRotaded(Mouth.Direction nextDirection)
+        private bool CheckIfPackManCanMoveWhenRotaded(Direction nextDirection)
         {
             // check if it's the opposit
             if (_lastAuthorizedDirection == nextDirection || _lastAuthorizedDirection == nextDirection - 2 || _lastAuthorizedDirection == nextDirection + 2)
@@ -504,19 +504,6 @@ namespace PacManGame.Entities
         /// </summary>
         public static class Mouth
         {
-            #region enum
-            /// <summary>
-            /// Enum for the direction
-            /// </summary>
-            public enum Direction
-            {
-                North,
-                East,
-                South,
-                West
-            }
-            #endregion enum
-
             #region mouth position
             // Points for the mouht for the north
             private static Point[] North = new Point[3]

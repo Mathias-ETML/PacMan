@@ -48,6 +48,11 @@ namespace PacManGame.Interfaces.IEntityNS
         public abstract Vector2 EntityVector2 { get; set; }
 
         /// <summary>
+        /// Current direction
+        /// </summary>
+        public abstract Direction CurrentDirection { get; set; }
+
+        /// <summary>
         /// Spawn entity
         /// </summary>
         public abstract void Spawn();
@@ -71,7 +76,7 @@ namespace PacManGame.Interfaces.IEntityNS
         /// Tell you on wich type of case the entity is
         /// </summary>
         /// <returns>the type of case</returns>
-        protected Map.GameMap.MapMeaning OnWichCaseIsEntity()
+        public Map.GameMap.MapMeaning OnWichCaseIsEntity()
         {
             return ObjectContainer.Map.GameMapMeaning[this.Body.Location.Y / GameForm.SIZEOFSQUARE, this.Body.Location.X / GameForm.SIZEOFSQUARE];
         }
@@ -81,20 +86,28 @@ namespace PacManGame.Interfaces.IEntityNS
         /// </summary>
         protected void TeleportEntity()
         {
-
             Point lastPosition = this.Body.Location;
             Point buffer = EntityTeleportation.EntityTeleportationDictionaryRelation[this.Body.Location];
             this.Body.Location = new Point(buffer.X, buffer.Y);
-            Map.GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, ObjectContainer.Map.GameMapMeaning[buffer.Y / GameForm.SIZEOFSQUARE, buffer.X / GameForm.SIZEOFSQUARE], lastPosition.X, lastPosition.Y);
-         
-            //BufferedGraphics
+            GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, GetGameMapMeaning(), lastPosition.X, lastPosition.Y);
+        }
+
+        /// <summary>
+        /// Get you the type of map chunk you are on
+        /// </summary>
+        /// <param name="xOffset">x offset</param>
+        /// <param name="yOffset">y offset</param>
+        /// <returns>type of map chunk you are on</returns>
+        public GameMap.MapMeaning GetGameMapMeaning(int xOffset = 0, int yOffset = 0)
+        {
+            return ObjectContainer.Map.GameMapMeaning[(this.Body.Location.Y  + yOffset) / GameForm.SIZEOFSQUARE, (this.Body.Location.X + xOffset) / GameForm.SIZEOFSQUARE];
         }
 
         /// <summary>
         /// Check if on grid
         /// </summary>
         /// <returns>if on grid</returns>
-        protected bool CheckIfOnGrid()
+        public bool CheckIfOnGrid()
         {
             return this.Body.Location.Y % GameForm.SIZEOFSQUARE == 0 && this.Body.Location.X % GameForm.SIZEOFSQUARE == 0;
         }
@@ -104,8 +117,47 @@ namespace PacManGame.Interfaces.IEntityNS
         /// </summary>
         public void OnUpdateMap()
         {
+            /*
             GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, ObjectContainer.Map.GameMapMeaning[Body.Location.Y / GameForm.SIZEOFSQUARE, Body.Location.X / GameForm.SIZEOFSQUARE],
-                Body.Location.X - EntityVector2.X, Body.Location.Y - EntityVector2.Y);
+                Body.Location.X - EntityVector2.X, Body.Location.Y - EntityVector2.Y);*/
+
+            int x = 0;
+            int y = 0;
+
+            // getting the point
+            switch (CurrentDirection)
+            {
+                case Direction.North:
+                    y = GameForm.SIZEOFSQUARE - this.Body.Location.Y % GameForm.SIZEOFSQUARE;
+                    break;
+                case Direction.East:
+                    x = -this.Body.Location.X % GameForm.SIZEOFSQUARE;
+                    if (CheckIfOnGrid())
+                    {
+                        x -= GameForm.SIZEOFSQUARE;
+                    }
+                    break;
+                case Direction.South:
+                    y = -this.Body.Location.Y % GameForm.SIZEOFSQUARE;
+                    if (CheckIfOnGrid())
+                    {
+                        y -= GameForm.SIZEOFSQUARE;
+                    }
+                    break;
+                case Direction.West:
+                    x = GameForm.SIZEOFSQUARE - this.Body.Location.X % GameForm.SIZEOFSQUARE;
+                    break;
+                default:
+                    break;
+            }
+
+            GameMap.DrawMapRectangle(
+                
+                ObjectContainer.GameFormPanelGraphics, 
+                
+                ObjectContainer.Map.GameMapMeaning[(this.Body.Location.Y + y) / GameForm.SIZEOFSQUARE, (this.Body.Location.X + x) / GameForm.SIZEOFSQUARE], 
+
+                (this.Body.Location.X + x), (this.Body.Location.Y + y)  );
         }
 
         #region IDisposable Support
@@ -177,13 +229,13 @@ namespace PacManGame.Interfaces.IEntityNS
     public class EntityTeleportation : EntityDirection
     {
         // work with XY
-        // point to where to teleport the pacman
+        // point to where to teleport the entity
         private static Point FirstLocation = new Point(40, 360);
         private static Point FirstLocationEnd = new Point(640, 360);
         private static Point SecondLocation = new Point(680, 360);
         private static Point SecondLocationEnd = new Point(80, 360);
 
-        // get you on wich location to teleport pacman
+        // get you on wich location to teleport entity
         public static readonly Dictionary<Point, Point> EntityTeleportationDictionaryRelation = new Dictionary<Point, Point>(2)
         {
             {FirstLocation, FirstLocationEnd },

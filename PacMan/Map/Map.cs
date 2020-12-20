@@ -57,7 +57,7 @@ namespace PacManGame.Map
         public GameMap()
         {
             // new json convertor made by me, its bad BUT it work and i am not a god
-            JsonConvertor jsonConvertor = new JsonConvertor(global::PacManGame.Properties.Resources.map, JsonConvertor.Type.Secure, new string[1] {"map"});
+            JsonConvertor jsonConvertor = new JsonConvertor(global::PacManGame.Properties.Resources.map, JsonConvertor.Type.Default, new string[1] {"map"});
 
             // getting the node because more simpler
             JsonConvertor.JsonNode jsonNode = jsonConvertor.GetElementByName("map");
@@ -105,7 +105,8 @@ namespace PacManGame.Map
             graphics.FillRectangle(_solidBrush, x, y, width, height);
         }
 
-        public static void DrawRectangle(Graphics graphics, int x, int y, Color color,int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
+
+        public static void DrawRectangle(Graphics graphics, int x, int y, Color color, int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
         {
             _solidBrush.Color = color;
 

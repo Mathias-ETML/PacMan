@@ -43,6 +43,7 @@ namespace PacManGame.Entities
         private GhostAI _AI;
         private Vector2 _deplacementGhost;
         private readonly Color _color;
+        private Direction _currentDirection = Direction.East;
         #endregion variables
 
         #region proprieties
@@ -64,6 +65,8 @@ namespace PacManGame.Entities
         public int Y { get => _body.Location.Y; }
 
         public Point Location { get => _body.Location; set => _body.Location = new Point(value.X, value.Y); }
+
+        public override Direction CurrentDirection { get => _currentDirection; set => _currentDirection = value; }
         #endregion proprieties
 
         #region Ghost construtor
@@ -191,7 +194,7 @@ namespace PacManGame.Entities
             int y = 0;
             
             // getting the point
-            switch (_AI.CurrentDirection)
+            switch (_currentDirection)
             {
                 case Direction.North:
                     y = GameForm.SIZEOFSQUARE - this.Y % GameForm.SIZEOFSQUARE;
@@ -217,7 +220,7 @@ namespace PacManGame.Entities
                     break;
             }
 
-            switch (_map.GameMapMeaning[(this.Y + y) / GameForm.SIZEOFSQUARE, (this.X + x) / GameForm.SIZEOFSQUARE])
+            switch (GetGameMapMeaning(x, y))
             {
                 case GameMap.MapMeaning.FOOD:
                     Food.DrawFood(_windowGameGraphics, Food.FoodMeaning.FOOD, (this.X + x), (this.Y + y));
@@ -324,16 +327,6 @@ namespace PacManGame.Entities
             {
                 base.OnUpdate();
             }
-
-            public override void Spawn()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Die()
-            {
-                throw new NotImplementedException();
-            }
         }
 
         public class BlueAI : GhostAI
@@ -369,10 +362,8 @@ namespace PacManGame.Entities
             /// </summary>
             public override void OnUpdate()
             {
-                if (CheckIfOnGrid())
+                if (base._ghost.CheckIfOnGrid())
                 {
-
-
                     NeedVectorUpdate();
                     FindRandomDirection();
                 }
@@ -391,31 +382,21 @@ namespace PacManGame.Entities
 
                 if (directions.Count == 1)
                 {
-                    if (directions[0] == base._currentDirection)
+                    if (directions[0] == base.CurrentDirection)
                     {
                         return;
                     }
 
-                    base._currentDirection = directions[0];
+                    base.CurrentDirection = directions[0];
                     base._ghost.EntityVector2 = DirectionsValues[directions[0]];
                 }
                 else
                 {
-                    base._currentDirection = directions[_rnd.Next(0, directions.Count)];
-                    base._ghost.EntityVector2 = DirectionsValues[base._currentDirection]; 
+                    base.CurrentDirection = directions[_rnd.Next(0, directions.Count)];
+                    base._ghost.EntityVector2 = DirectionsValues[base.CurrentDirection]; 
                     // i made a big mistake, i got the pointer to the object in the dictionary
                     // sometime i want to manage myself the pointers
                 }
-            }
-
-            public override void Spawn()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Die()
-            {
-                throw new NotImplementedException();
             }
         }
 
@@ -451,16 +432,6 @@ namespace PacManGame.Entities
             public override void OnUpdate()
             {
                 base.OnUpdate();
-            }
-
-            public override void Spawn()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Die()
-            {
-                throw new NotImplementedException();
             }
         }
 
@@ -498,12 +469,12 @@ namespace PacManGame.Entities
             /// </summary>
             public override void OnUpdate()
             {
-                if (CheckIfOnGrid())
+                if (_ghost.CheckIfOnGrid())
                 {
                     if (base.AvailableDirections().Count == 1)
                     {
-                        base._currentDirection = AvailableDirections()[0];
-                        base._ghost.EntityVector2 = DirectionsValues[_currentDirection];
+                        base.CurrentDirection = AvailableDirections()[0];
+                        base._ghost.EntityVector2 = DirectionsValues[CurrentDirection];
                     }
                     else
                     {
@@ -526,8 +497,8 @@ namespace PacManGame.Entities
 
             private void ChasePacMan()
             {
-                base._currentDirection = BestDirectionToChoose();
-                base._ghost.EntityVector2 = DirectionsValues[_currentDirection];
+                base.CurrentDirection = BestDirectionToChoose();
+                base._ghost.EntityVector2 = DirectionsValues[CurrentDirection];
             }
 
             private Direction BestDirectionToChoose()
@@ -540,9 +511,9 @@ namespace PacManGame.Entities
                 System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL);
                 System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL);
 
-
-                if (deltaX >= deltaY && ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL 
-                    && ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL || deltaY == 0)
+                // this is machin learning level thing :sunglass:
+                if (deltaX >= deltaY && base._ghost.GetGameMapMeaning(0, GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL 
+                    && base._ghost.GetGameMapMeaning(GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL || deltaY == 0)
                 {
                     if (deltaX >= 0)
                     {
@@ -593,47 +564,27 @@ namespace PacManGame.Entities
             private void FindDirection()
             {
                 List<Direction> directions = base.AvailableDirections();
-                base._currentDirection = directions[0];
+                base.CurrentDirection = directions[0];
                 base._ghost.EntityVector2 = DirectionsValues[directions[0]];
-            }
-
-            public override void Spawn()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Die()
-            {
-                throw new NotImplementedException();
             }
         }
     }
 
-    public abstract class GhostAI : Entity
+    public abstract class GhostAI : EntityDirection
     {
         /// <summary>
         /// Attribut
         /// </summary>
         protected int _rayon;
         protected Ghost _ghost;
-        protected Direction _currentDirection = Direction.East;
         protected ObjectContainer _objectContainer;
+
         /// <summary>
         /// Propriety
         /// </summary>
-        public Direction CurrentDirection => _currentDirection;
-        public override ObjectContainer ObjectContainer { get => _ghost.ObjectContainer; set => _objectContainer = value; }
-        public override Panel Body { get => _ghost.Body; set => _ghost.Body = value; }
-        public override Vector2 EntityVector2
-        {
-            get => _ghost.EntityVector2;
-            set
-            {
-                _ghost.EntityVector2.X = value.X;
-                _ghost.EntityVector2.Y = value.Y;
-            }
-        }
+        public Direction CurrentDirection { get => _ghost.CurrentDirection; set => _ghost.CurrentDirection = value; }
 
+        public ObjectContainer ObjectContainer { get => _ghost.ObjectContainer; set => _objectContainer = value; }
         /// <summary>
         /// constructor
         /// </summary>
@@ -643,7 +594,7 @@ namespace PacManGame.Entities
             OnStart();
         }
 
-        public override void OnStart()
+        public virtual void OnStart()
         {
             this._ghost.EntityVector2.X = Ghost.SPEED;
             this._ghost.EntityVector2.Y = 0;
@@ -652,7 +603,7 @@ namespace PacManGame.Entities
         /// <summary>
         /// On update function
         /// </summary>
-        public override void OnUpdate()
+        public virtual void OnUpdate()
         {
             MoveGhost();
         }
@@ -682,7 +633,8 @@ namespace PacManGame.Entities
         /// <returns>if ghost can move</returns>
         protected bool NeedVectorUpdate()
         {
-            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.Y / Ghost.SPEED, _ghost.X / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.X / Ghost.SPEED] == GameMap.MapMeaning.WALL)
+            if (_ghost.GetGameMapMeaning(_ghost.EntityVector2.X / Ghost.SPEED, _ghost.EntityVector2.Y / Ghost.SPEED) == GameMap.MapMeaning.WALL)
+            //if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.Y / Ghost.SPEED, _ghost.X / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.X / Ghost.SPEED] == GameMap.MapMeaning.WALL)
             {
                 this._ghost.EntityVector2.X = 0;
                 this._ghost.EntityVector2.Y = 0;
@@ -704,44 +656,66 @@ namespace PacManGame.Entities
         {
             List<Direction> vs = new List<Direction>();
 
+            /*
             if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE - 1, _ghost.X / GameForm.SIZEOFSQUARE] != GameMap.MapMeaning.WALL)
+            {
+                vs.Add(Direction.North);
+            }*/
+
+            if (_ghost.GetGameMapMeaning(0, -GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.North);
             }
 
+            /*
             if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL)
+            {
+                vs.Add(Direction.East);
+            }*/
+
+            if (_ghost.GetGameMapMeaning(GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.East);
             }
 
+            /*
             if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + 1, _ghost.X / GameForm.SIZEOFSQUARE] != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.South);
-            }
+            }*/
 
+            if (_ghost.GetGameMapMeaning(0, GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
+            {
+                vs.Add(Direction.South);
+            }
+            
+            /*
             if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL)
+            {
+                vs.Add(Direction.West);
+            }*/
+
+            if (_ghost.GetGameMapMeaning(-GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.West);
             }
 
             // check the PacMan.CheckIfPackManCanMoveWhenRotaded function to see why i do this
-            vs.Remove(_currentDirection - 2);
-            vs.Remove(_currentDirection + 2);
+            vs.Remove(CurrentDirection - 2);
+            vs.Remove(CurrentDirection + 2);
 
             return vs;
         }
 
-        protected new virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
 
             }
-
-            base.Dispose(disposing);
         }
 
-        public new void Dispose()
+        public void Dispose()
         {
             this.Dispose(true);
 

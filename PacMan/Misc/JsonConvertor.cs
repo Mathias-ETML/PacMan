@@ -1194,7 +1194,15 @@ namespace JsonFileConvertor
                 string buffer = _rawData.Substring(_name.Length + 2, _rawData.Length - _name.Length - 2);
 
                 // removing the :[{}] that make this an object
-                buffer = buffer.Substring(3, buffer.Length - 5);
+                if (_type == Type.Secure)
+                {
+                    buffer = buffer.Substring(3, buffer.Length - 5);
+                }
+                else
+                {
+                    buffer = buffer.Substring(2, buffer.Length - 3);
+                }
+
 
                 int nameStart = 0;
                 int nameEnd = 0;

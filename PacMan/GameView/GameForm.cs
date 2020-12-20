@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using PacManGame.Map;
 using PacManGame.Entities;
 using PacManGame.Interfaces.IControllerNS;
+using PacManGame.Interfaces.IEntityNS;
 
 namespace PacManGame.GameView
 {
@@ -73,35 +74,35 @@ namespace PacManGame.GameView
             switch (e.KeyCode)
             {
                 case Keys.Up:
-                    if (Entities.PacMan.Mouth.Direction.North != _objectContainer.PacMans[0].ActualMouthDirection)
+                    if (EntityDirection.Direction.North != _objectContainer.PacMans[0].CurrentDirection)
                     {
 
                         _objectContainer.PacMans[0].SetPacManDeplacement(0, -Entities.PacMan.SPEED);
-                        _objectContainer.PacMans[0].RotatePacManBody(Entities.PacMan.Mouth.Direction.North);
+                        _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.North);
                     }
                     break;
 
                 case Keys.Right:
-                    if (Entities.PacMan.Mouth.Direction.East != _objectContainer.PacMans[0].ActualMouthDirection)
+                    if (EntityDirection.Direction.East != _objectContainer.PacMans[0].CurrentDirection)
                     {
                         _objectContainer.PacMans[0].SetPacManDeplacement(Entities.PacMan.SpeedOfPacMan, 0);
-                        _objectContainer.PacMans[0].RotatePacManBody(Entities.PacMan.Mouth.Direction.East);
+                        _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.East);
                     }
                     break;
 
                 case Keys.Down:
-                    if (Entities.PacMan.Mouth.Direction.South != _objectContainer.PacMans[0].ActualMouthDirection)
+                    if (EntityDirection.Direction.South != _objectContainer.PacMans[0].CurrentDirection)
                     {
                         _objectContainer.PacMans[0].SetPacManDeplacement(0, Entities.PacMan.SpeedOfPacMan);
-                        _objectContainer.PacMans[0].RotatePacManBody(Entities.PacMan.Mouth.Direction.South);
+                        _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.South);
                     }
                     break;
 
                 case Keys.Left:
-                    if (Entities.PacMan.Mouth.Direction.West != _objectContainer.PacMans[0].ActualMouthDirection)
+                    if (EntityDirection.Direction.West != _objectContainer.PacMans[0].CurrentDirection)
                     {
                         _objectContainer.PacMans[0].SetPacManDeplacement(-Entities.PacMan.SpeedOfPacMan, 0);
-                        _objectContainer.PacMans[0].RotatePacManBody(Entities.PacMan.Mouth.Direction.West);
+                        _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.West);
                     }
                     break;
 
