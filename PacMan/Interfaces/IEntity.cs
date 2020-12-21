@@ -25,12 +25,19 @@ namespace PacManGame.Interfaces.IEntityNS
     /// Entity class
     /// Mother class
     /// </summary>
-    public abstract class Entity : EntityTeleportation, IEntity
+    public abstract class Entity : EntityBase, IEntity
     {
         /// <summary>
         /// Pixel to move when on update function occure
         /// </summary>
         public const int SPEED = 10;
+
+        public event EntityOverlapedEventHandler EntityOverlaped;
+
+        protected virtual void RaiseEntityOverlaped(Entity overlapedEntity)
+        {
+            EntityOverlaped?.Invoke(this, overlapedEntity);
+        }
 
         /// <summary>
         /// Object container field
@@ -113,6 +120,42 @@ namespace PacManGame.Interfaces.IEntityNS
         }
 
         /// <summary>
+        /// Check if we overland any entity
+        /// </summary>
+        /// <returns>if overlap entity</returns>
+        public bool CheckIfEntityOverlap()
+        {
+            foreach (Entity item in ObjectContainer)
+            {
+                // of course we weel overlap on ourselve
+                if (item == this)
+                {
+                    continue;
+                }
+
+                if (CheckOverlap(item))
+                {
+                    RaiseEntityOverlaped(item);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool CheckOverlap(Entity entity)
+        {
+            // this is basicly pythagor with DeltaX and DeltaY
+            // thanks poland
+            //return Math.Sqrt(Math.Pow(Math.Abs(ObjectContainer.PacMans[0].X - _ghost.X), 2) + Math.Pow(Math.Abs(ObjectContainer.PacMans[0].Y - _ghost.Y), 2)) <= _rayon;
+
+            // offseting the point to the center of the body and then doing so pythagor to check overlaping
+            return Math.Sqrt(Math.Pow(Math.Abs(entity.Body.Location.X - this.Body.Location.X), 2) +
+
+                Math.Pow(Math.Abs(entity.Body.Location.Y - this.Body.Location.Y), 2)) <= GameForm.SIZEOFSQUARE;
+        }
+
+        /// <summary>
         /// Update the map for the entity
         /// </summary>
         public void OnUpdateMap()
@@ -124,7 +167,8 @@ namespace PacManGame.Interfaces.IEntityNS
             int x = 0;
             int y = 0;
 
-            // getting the point
+            // getting direction
+            // i will explain why and why not, but now i am tired and i have other things to do
             switch (CurrentDirection)
             {
                 case Direction.North:
@@ -196,9 +240,17 @@ namespace PacManGame.Interfaces.IEntityNS
     }
 
     /// <summary>
+    /// Entity base class
+    /// </summary>
+    public abstract class EntityBase : EntityTeleportation
+    {
+        public delegate void EntityOverlapedEventHandler(Entity entitySender, Entity overlapedEntity);
+    }
+
+    /// <summary>
     /// Entity direction class
     /// </summary>
-    public abstract class EntityDirection
+    public abstract class EntityDirection 
     {
         /// <summary>
         /// Direction enum

@@ -16,6 +16,9 @@ namespace PacManGame
         #region Main entry
         static void Main()
         {
+
+            // ArgIterator()
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 

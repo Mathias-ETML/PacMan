@@ -52,7 +52,7 @@ namespace PacManGame.GameView
                 {
                     GameMap.DrawMapRectangle(graphics, _objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
 
-                    if (_objectContainer.Map.GameMapMeaning[y, x] == Map.GameMap.MapMeaning.FOOD || _objectContainer.Map.GameMapMeaning[y, x] == Map.GameMap.MapMeaning.BIGFOOD)
+                    if (_objectContainer.Map.GameMapMeaning[y, x] == GameMap.MapMeaning.FOOD || _objectContainer.Map.GameMapMeaning[y, x] == GameMap.MapMeaning.BIGFOOD)
                     {
                         _objectContainer.Map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)_objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
                     }

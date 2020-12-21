@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using PacManGame.Interfaces.IControllerNS;
 using PacManGame.Entities;
-
+using PacManGame.Interfaces.IEntityNS;
+using static PacManGame.Interfaces.IEntityNS.Entity;
+using static PacManGame.Interfaces.IEntityNS.EntityBase;
 
 namespace PacManGame.Controllers.GameControllerNS
 {
@@ -28,7 +30,7 @@ namespace PacManGame.Controllers.GameControllerNS
 
         public void OnStart()
         {
-            base.OnStart(new OnUpdateFunctionPointer(this.OnUpdate));
+            base.OnStart(new OnUpdateFunctionPointer(this.OnUpdate), new EntityOverlapedEventHandler(this.OnEntityOverlapEvent));
         }
 
         public override void OnUpdate()
@@ -67,6 +69,11 @@ namespace PacManGame.Controllers.GameControllerNS
             }
         }
 
+        public override void OnEntityOverlapEvent(Entity sender, Entity overlaped)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -87,5 +94,7 @@ namespace PacManGame.Controllers.GameControllerNS
             this.Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+
     }
 }

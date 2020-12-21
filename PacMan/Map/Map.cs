@@ -57,7 +57,7 @@ namespace PacManGame.Map
         public GameMap()
         {
             // new json convertor made by me, its bad BUT it work and i am not a god
-            JsonConvertor jsonConvertor = new JsonConvertor(global::PacManGame.Properties.Resources.map, JsonConvertor.Type.Default, new string[1] {"map"});
+            JsonConvertor jsonConvertor = new JsonConvertor(global::PacManGame.Properties.Resources.map, new string[1] { "map" }, JsonConvertor.Type.Default );
 
             // getting the node because more simpler
             JsonConvertor.JsonNode jsonNode = jsonConvertor.GetElementByName("map");

@@ -8,6 +8,7 @@ using PacManGame.Map;
 using PacManGame.GameView;
 using PacManGame.Interfaces.IEntityNS;
 using System.Collections;
+using static PacManGame.Interfaces.IEntityNS.EntityBase;
 
 namespace PacManGame.Interfaces.IControllerNS
 {
@@ -190,7 +191,7 @@ namespace PacManGame.Interfaces.IControllerNS
         /// On start function
         /// </summary>
         /// <param name="onUpdateFunctionPointer">pointer to the on update function of the child class</param>
-        public virtual void OnStart(OnUpdateFunctionPointer onUpdateFunctionPointer)
+        public virtual void OnStart(OnUpdateFunctionPointer onUpdateFunctionPointer, EntityOverlapedEventHandler onEntityOverlapFunctionPointer)
         {
             this._onUpdateFunctionPointer = onUpdateFunctionPointer;
 
@@ -202,7 +203,7 @@ namespace PacManGame.Interfaces.IControllerNS
 
             for (int i = 0; i < NUMBEROFMAXIMUMPACMANWHILEIAMTOOLAZYTODOTCPIPPLEMENTATION; i++)
             {
-                ObjectContainer.PacMans.Add(new PacMan(40, 40, ObjectContainer));
+                ObjectContainer.PacMans.Add(new PacMan(40, 120, ObjectContainer));
             }
 
             ObjectContainer.Ghosts.Add(new Ghost(0 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.BLUE, ObjectContainer));
@@ -217,6 +218,7 @@ namespace PacManGame.Interfaces.IControllerNS
             foreach (Entity item in ObjectContainer)
             {
                 ObjectContainer.GameForm.panPanGame.Controls.Add(item.Body);
+                item.EntityOverlaped += onEntityOverlapFunctionPointer;
             }
 
             Application.Run(ObjectContainer.GameForm);
@@ -242,6 +244,8 @@ namespace PacManGame.Interfaces.IControllerNS
 
         public abstract void OnUpdateMap();
 
+        public abstract void OnEntityOverlapEvent(Entity sender, Entity overlaped);
+
         #region IDisposable Support
         protected new virtual void Dispose(bool disposing)
         {
@@ -266,7 +270,7 @@ namespace PacManGame.Interfaces.IControllerNS
         #endregion
     }
 
-    public abstract class ControllerBase : UpdatableObjectOnUpdateFunctionPointer, IDisposable
+    public abstract class ControllerBase : UpdatableObjectFunctionPointer, IDisposable
     {
         protected Timer OnUpdateTimer { get; set; }
 

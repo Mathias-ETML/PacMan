@@ -237,6 +237,8 @@ namespace PacManGame.Entities
         {
             if (_body != null && !_disposed)
             {
+                CheckIfEntityOverlap();
+
                 switch (base.OnWichCaseIsEntity())
                 {
                     case GameMap.MapMeaning.TELEPORT:

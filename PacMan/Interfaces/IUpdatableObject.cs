@@ -1,4 +1,8 @@
-﻿namespace PacManGame.Interfaces.IUpdatableObjectNS
+﻿using PacManGame.Interfaces.IEntityNS;
+using System;
+using static PacManGame.Interfaces.IEntityNS.Entity;
+
+namespace PacManGame.Interfaces.IUpdatableObjectNS
 {
     /// <summary>
     /// IUpdatableObject interface
@@ -15,7 +19,8 @@
     /// </summary>
     public interface IUpdatableObjectGameController
     {
-        void OnStart(UpdatableObjectOnUpdateFunctionPointer.OnUpdateFunctionPointer updatableObjectOnUpdateFunctionPointer);
+        void OnStart(UpdatableObjectFunctionPointer.OnUpdateFunctionPointer updatableObjectOnUpdateFunctionPointer,
+             EntityBase.EntityOverlapedEventHandler onEntityOverlapFunctionPointer);
 
         void OnUpdate();
     }
@@ -23,7 +28,7 @@
     /// <summary>
     /// UpdatableObjectOnUpdateFunctionPointer abstract class
     /// </summary>
-    public abstract class UpdatableObjectOnUpdateFunctionPointer
+    public abstract class UpdatableObjectFunctionPointer
     {
         public delegate void OnUpdateFunctionPointer();
     }
