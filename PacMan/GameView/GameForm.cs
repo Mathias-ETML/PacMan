@@ -77,7 +77,7 @@ namespace PacManGame.GameView
                     if (EntityDirection.Direction.North != _objectContainer.PacMans[0].CurrentDirection)
                     {
 
-                        _objectContainer.PacMans[0].SetPacManDeplacement(0, -Entities.PacMan.SPEED);
+                        _objectContainer.PacMans[0].SetPacManDeplacement(0, -Entity.SPEED);
                         _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.North);
                     }
                     break;
@@ -85,7 +85,7 @@ namespace PacManGame.GameView
                 case Keys.Right:
                     if (EntityDirection.Direction.East != _objectContainer.PacMans[0].CurrentDirection)
                     {
-                        _objectContainer.PacMans[0].SetPacManDeplacement(Entities.PacMan.SpeedOfPacMan, 0);
+                        _objectContainer.PacMans[0].SetPacManDeplacement(Entity.SPEED, 0);
                         _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.East);
                     }
                     break;
@@ -93,7 +93,7 @@ namespace PacManGame.GameView
                 case Keys.Down:
                     if (EntityDirection.Direction.South != _objectContainer.PacMans[0].CurrentDirection)
                     {
-                        _objectContainer.PacMans[0].SetPacManDeplacement(0, Entities.PacMan.SpeedOfPacMan);
+                        _objectContainer.PacMans[0].SetPacManDeplacement(0, Entity.SPEED);
                         _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.South);
                     }
                     break;
@@ -101,7 +101,7 @@ namespace PacManGame.GameView
                 case Keys.Left:
                     if (EntityDirection.Direction.West != _objectContainer.PacMans[0].CurrentDirection)
                     {
-                        _objectContainer.PacMans[0].SetPacManDeplacement(-Entities.PacMan.SpeedOfPacMan, 0);
+                        _objectContainer.PacMans[0].SetPacManDeplacement(-Entity.SPEED, 0);
                         _objectContainer.PacMans[0].RotatePacManBody(EntityDirection.Direction.West);
                     }
                     break;

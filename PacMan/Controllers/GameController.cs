@@ -71,7 +71,13 @@ namespace PacManGame.Controllers.GameControllerNS
 
         public override void OnEntityOverlapEvent(Entity sender, Entity overlaped)
         {
-            throw new NotImplementedException();
+            if (sender is Ghost && overlaped is Ghost)
+            {
+                sender.CurrentDirection = EntityDirection.GetOpposit(sender.CurrentDirection);
+                overlaped.CurrentDirection = EntityDirection.GetOpposit(overlaped.CurrentDirection);
+
+                return;
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -94,7 +100,5 @@ namespace PacManGame.Controllers.GameControllerNS
             this.Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-
     }
 }

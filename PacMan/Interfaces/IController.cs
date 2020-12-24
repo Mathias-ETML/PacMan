@@ -53,7 +53,7 @@ namespace PacManGame.Interfaces.IControllerNS
         public ObjectContainer()
         {
             this.Ghosts = new List<Ghost>();
-            this.PacMans = new List<Entities.PacMan>();
+            this.PacMans = new List<PacMan>();
             this.Map = new GameMap();
             this.GameForm = new GameForm(this);
             this.GameFormPanelGraphics = GameForm.panPanGame.CreateGraphics();
@@ -207,7 +207,7 @@ namespace PacManGame.Interfaces.IControllerNS
             }
 
             ObjectContainer.Ghosts.Add(new Ghost(0 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.BLUE, ObjectContainer));
-            ObjectContainer.Ghosts.Add(new Ghost(1 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.RED, ObjectContainer));
+            ObjectContainer.Ghosts.Add(new Ghost(2 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.RED, ObjectContainer));
 
             /*
             for (int i = 0; i < NUMBEROFMAXIMUMGHOST; i++)

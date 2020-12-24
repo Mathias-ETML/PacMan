@@ -7,6 +7,7 @@ using PacManGame.GameView;
 using PacManGame.Map;
 using System.Windows.Forms;
 using System.Drawing;
+using PacManGame.Entities;
 
 namespace PacManGame.Interfaces.IEntityNS
 {
@@ -32,8 +33,15 @@ namespace PacManGame.Interfaces.IEntityNS
         /// </summary>
         public const int SPEED = 10;
 
+        /// <summary>
+        /// Event when entity overlap
+        /// </summary>
         public event EntityOverlapedEventHandler EntityOverlaped;
 
+        /// <summary>
+        /// function to call when entities overlap
+        /// </summary>
+        /// <param name="overlapedEntity">the overlaped entity</param>
         protected virtual void RaiseEntityOverlaped(Entity overlapedEntity)
         {
             EntityOverlaped?.Invoke(this, overlapedEntity);
@@ -48,6 +56,16 @@ namespace PacManGame.Interfaces.IEntityNS
         /// Body pannel
         /// </summary>
         public abstract Panel Body { get; set; }
+
+        /// <summary>
+        /// X field
+        /// </summary>
+        public virtual int X { get => Body.Location.X; }
+
+        /// <summary>
+        /// Y field
+        /// </summary>
+        public virtual int Y { get => Body.Location.Y; }
 
         /// <summary>
         /// entity vector
@@ -127,7 +145,6 @@ namespace PacManGame.Interfaces.IEntityNS
         {
             foreach (Entity item in ObjectContainer)
             {
-                // of course we weel overlap on ourselve
                 if (item == this)
                 {
                     continue;
@@ -145,15 +162,11 @@ namespace PacManGame.Interfaces.IEntityNS
 
         private bool CheckOverlap(Entity entity)
         {
-            // this is basicly pythagor with DeltaX and DeltaY
-            // thanks poland
-            //return Math.Sqrt(Math.Pow(Math.Abs(ObjectContainer.PacMans[0].X - _ghost.X), 2) + Math.Pow(Math.Abs(ObjectContainer.PacMans[0].Y - _ghost.Y), 2)) <= _rayon;
-
-            // offseting the point to the center of the body and then doing so pythagor to check overlaping
-            return Math.Sqrt(Math.Pow(Math.Abs(entity.Body.Location.X - this.Body.Location.X), 2) +
-
-                Math.Pow(Math.Abs(entity.Body.Location.Y - this.Body.Location.Y), 2)) <= GameForm.SIZEOFSQUARE;
-        }
+            return entity.Y + GameForm.SIZEOFSQUARE == this.Y || // north
+                entity.X - GameForm.SIZEOFSQUARE == this.X || // east
+                entity.Y - GameForm.SIZEOFSQUARE == this.Y || // south
+                entity.X + GameForm.SIZEOFSQUARE == this.X; // west
+        }   
 
         /// <summary>
         /// Update the map for the entity
@@ -261,6 +274,28 @@ namespace PacManGame.Interfaces.IEntityNS
             East,
             South,
             West
+        }
+
+        /// <summary>
+        /// Get the opposit of a direction
+        /// </summary>
+        /// <param name="direction">direction</param>
+        /// <returns>opposit of direction</returns>
+        public static Direction GetOpposit(Direction direction)
+        {
+            switch (direction)
+            {
+                case Direction.North:
+                    return Direction.South;
+                case Direction.East:
+                    return Direction.West;
+                case Direction.South:
+                    return Direction.North;
+                case Direction.West:
+                    return Direction.East;
+                default:
+                    throw new Exception("You are a magician, this sould never happen");
+            }
         }
 
         /// <summary>

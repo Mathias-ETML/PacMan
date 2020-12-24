@@ -52,7 +52,6 @@ namespace PacManGame.Entities
         private bool _isPacManMouthOpen = true;
         private bool _canPacManEatGhost = false;
         private ulong _playerScore = 0;
-        public const int SPEEDOFPACMAN = 10; // in px
         private Vector2 _deplacementPacMan;// = new Vector2(0, 0);
         private ObjectContainer _objectContainer;
         #endregion variables
@@ -75,7 +74,6 @@ namespace PacManGame.Entities
             PacManLocation = new Point(x, y);
         }
 
-        public static int SpeedOfPacMan { get => SPEEDOFPACMAN; }
         public override Vector2 EntityVector2
         {
             get => _deplacementPacMan;
@@ -95,10 +93,12 @@ namespace PacManGame.Entities
             _playerScore += (ulong)points;
         }
 
-        public int X { get => _body.Location.X; }
-        public int Y { get => _body.Location.Y; }
+        public override int X { get => base.X; }
+        public override int Y { get => base.Y; }
 
         public override ObjectContainer ObjectContainer { get => _objectContainer; set => _objectContainer = value; }
+
+        public bool IsIdleing { get => _currentDirection != _lastAuthorizedDirection; }
         #endregion propriety
 
         #region PacMan code
@@ -267,6 +267,17 @@ namespace PacManGame.Entities
             //this.UpdateMap();
         }
 
+        public new void OnUpdateMap()
+        {
+            // check if we are not moving
+            if (IsIdleing)
+            {
+                return;
+            }
+
+            base.OnUpdateMap();
+        }
+
         #region PacMan body update
         /// <summary>
         /// Change the mouth direction
@@ -312,8 +323,8 @@ namespace PacManGame.Entities
             // casting heavy
             int xPosition = PacManLocation.X / GameForm.SIZEOFSQUARE;
             int yPosition = PacManLocation.Y / GameForm.SIZEOFSQUARE;
-            int xFuturePosition = _deplacementPacMan.X / SPEEDOFPACMAN;
-            int yFuturePosition = _deplacementPacMan.Y / SPEEDOFPACMAN;
+            int xFuturePosition = _deplacementPacMan.X / SPEED;
+            int yFuturePosition = _deplacementPacMan.Y / SPEED;
 
             // check if the future location is not a wall
             if (CheckIfOnGrid() && (_map.GameMapMeaning[yPosition + yFuturePosition, xPosition + xFuturePosition] != GameMap.MapMeaning.WALL))
@@ -374,7 +385,7 @@ namespace PacManGame.Entities
             if (CheckIfOnGrid())
             {
                 // check if the block in front of him is a wall
-                if (_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE + _deplacementPacMan.Y / SPEEDOFPACMAN, PacManLocation.X / GameForm.SIZEOFSQUARE + _deplacementPacMan.X / SPEEDOFPACMAN] == GameMap.MapMeaning.WALL)
+                if (_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE + _deplacementPacMan.Y / SPEED, PacManLocation.X / GameForm.SIZEOFSQUARE + _deplacementPacMan.X / SPEED] == GameMap.MapMeaning.WALL)
                 {
                     this._deplacementPacMan.X = 0;
                     this._deplacementPacMan.Y = 0;

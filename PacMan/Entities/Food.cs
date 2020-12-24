@@ -8,7 +8,7 @@ namespace PacManGame.Entities
     /// <summary>
     /// Food class
     /// </summary>
-    public partial class Food : IDisposable
+    public class Food : IDisposable
     {
         #region variables
         #region enum
@@ -72,8 +72,8 @@ namespace PacManGame.Entities
         /// <param name="y">y location</param>
         public static void DrawFood(Graphics graphics, FoodMeaning type, int x, int y)
         {
-            graphics.DrawEllipse(FoodColor.Pen, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (byte)type, (GameForm.SIZEOFSQUARE / 10) * (byte)type);
-            graphics.FillEllipse(FoodColor.SolidBrush, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (byte)type, (GameForm.SIZEOFSQUARE / 10) * (byte)type);
+            graphics.DrawEllipse(FoodColor.Pen, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (int)type, (GameForm.SIZEOFSQUARE / 10) * (int)type);
+            graphics.FillEllipse(FoodColor.SolidBrush, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (int)type, (GameForm.SIZEOFSQUARE / 10) * (int)type);
         }
         #endregion Food
 

@@ -61,8 +61,8 @@ namespace PacManGame.Entities
 
         public override ObjectContainer ObjectContainer { get => _objectContainer; set => _objectContainer = value; }
 
-        public int X { get => _body.Location.X; }
-        public int Y { get => _body.Location.Y; }
+        public override int X { get => base.X; }
+        public override int Y { get => base.Y; }
 
         public Point Location { get => _body.Location; set => _body.Location = new Point(value.X, value.Y); }
 
@@ -174,6 +174,9 @@ namespace PacManGame.Entities
                 }
 
                 _AI.OnUpdate();
+
+                CheckIfEntityOverlap();
+
                 //this.UpdateMap();
             }
         }

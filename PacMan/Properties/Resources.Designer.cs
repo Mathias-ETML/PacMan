@@ -39,7 +39,7 @@ namespace PacManGame.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PacMan.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PacManGame.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -62,13 +62,13 @@ namespace PacManGame.Properties {
         
         /// <summary>
         ///   Recherche une chaîne localisée semblable à {
-        ///  &quot;map&quot;: [
-        ///    {
-        ///      &quot;width&quot;: 19,
-        ///      &quot;height&quot;: 19,
-        ///      &quot;data&quot;: [
-        ///        [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot; ],
-        ///        [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.FOOD&quot;, &quot;MapMeanin [le reste de la chaîne a été tronqué]&quot;;.
+        ///  &quot;map&quot;: 
+        ///  {
+        ///    &quot;width&quot;: 19,
+        ///    &quot;height&quot;: 19,
+        ///    &quot;data&quot;: [
+        ///      [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.WALL&quot; ],
+        ///      [ &quot;MapMeaning.WALL&quot;, &quot;MapMeaning.FOOD&quot;, &quot;MapMeaning.FOOD&quot;, &quot;Map [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         internal static string map {
             get {
