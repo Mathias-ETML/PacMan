@@ -1,6 +1,5 @@
 ﻿using PacManGame.Interfaces.IEntityNS;
 using System;
-using static PacManGame.Interfaces.IEntityNS.Entity;
 
 namespace PacManGame.Interfaces.IUpdatableObjectNS
 {
@@ -9,8 +8,6 @@ namespace PacManGame.Interfaces.IUpdatableObjectNS
     /// </summary>
     public interface IUpdatableObject
     {
-        void OnStart();
-
         void OnUpdate();
     }
 
@@ -20,7 +17,9 @@ namespace PacManGame.Interfaces.IUpdatableObjectNS
     public interface IUpdatableObjectGameController
     {
         void OnStart(UpdatableObjectFunctionPointer.OnUpdateFunctionPointer updatableObjectOnUpdateFunctionPointer,
-             EntityBase.EntityOverlapedEventHandler onEntityOverlapFunctionPointer);
+                     Entity.EntityOverlapedEventHandler onEntityOverlapFunctionPointer,
+                     Entities.PacMan.OnPacManDeathEventHandler onPacManDeathEventHandler,
+                     Entities.Ghost.OnGhostDeathEventHandler onGhostDeathEventHandler);
 
         void OnUpdate();
     }

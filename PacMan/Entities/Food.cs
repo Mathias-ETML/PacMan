@@ -77,7 +77,6 @@ namespace PacManGame.Entities
         }
         #endregion Food
 
-
         #region memory managment
         /// <summary>
         /// disposing

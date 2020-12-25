@@ -7,7 +7,6 @@ using PacManGame.GameView;
 using PacManGame.Map;
 using System.Windows.Forms;
 using System.Drawing;
-using PacManGame.Entities;
 
 namespace PacManGame.Interfaces.IEntityNS
 {
@@ -17,9 +16,9 @@ namespace PacManGame.Interfaces.IEntityNS
     /// </summary>
     public interface IEntity : IUpdatableObject, IDisposable
     {
-        void Spawn();
+        void Spawn(int x, int y);
 
-        void Die();
+        bool Die();
     }
 
     /// <summary>
@@ -32,6 +31,13 @@ namespace PacManGame.Interfaces.IEntityNS
         /// Pixel to move when on update function occure
         /// </summary>
         public const int SPEED = 10;
+
+        /// <summary>
+        /// Delegate for the event
+        /// </summary>
+        /// <param name="entitySender">sender</param>
+        /// <param name="overlapedEntity">overlaped entity</param>
+        public delegate void EntityOverlapedEventHandler(Entity entitySender, Entity overlapedEntity);
 
         /// <summary>
         /// Event when entity overlap
@@ -70,7 +76,7 @@ namespace PacManGame.Interfaces.IEntityNS
         /// <summary>
         /// entity vector
         /// </summary>
-        public abstract Vector2 EntityVector2 { get; set; }
+        public abstract Vector2 Vector2Ghost { get; set; }
 
         /// <summary>
         /// Current direction
@@ -80,17 +86,30 @@ namespace PacManGame.Interfaces.IEntityNS
         /// <summary>
         /// Spawn entity
         /// </summary>
-        public abstract void Spawn();
+        public abstract void Spawn(int x, int y);
+
+        /// <summary>
+        /// Get if alive
+        /// </summary>
+        /// <returns>if alive</returns>
+        public abstract bool IsAlive();
 
         /// <summary>
         /// Die function
         /// </summary>
-        public abstract void Die();
+        public abstract bool Die();
 
         /// <summary>
-        /// On start
+        /// dispawn entity
         /// </summary>
-        public abstract void OnStart();// { }
+        public virtual void Dispawn()
+        {
+            int x = X;
+            int y = Y;
+            this.Body.Location = new Point(-GameForm.SIZEOFSQUARE, -GameForm.SIZEOFSQUARE);
+            ObjectContainer.GameForm.panPanGame.Controls.Remove(this.Body);
+            Map.GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, GameMap.MapMeaning.ROAD, x, y);
+        }
 
         /// <summary>
         /// On update
@@ -162,10 +181,17 @@ namespace PacManGame.Interfaces.IEntityNS
 
         private bool CheckOverlap(Entity entity)
         {
-            return entity.Y + GameForm.SIZEOFSQUARE == this.Y || // north
-                entity.X - GameForm.SIZEOFSQUARE == this.X || // east
-                entity.Y - GameForm.SIZEOFSQUARE == this.Y || // south
-                entity.X + GameForm.SIZEOFSQUARE == this.X; // west
+            return Math.Sqrt(Math.Pow(Math.Abs(entity.X - this.X), 2) + Math.Pow(Math.Abs(entity.Y - this.Y), 2)) <= GameForm.SIZEOFSQUARE;
+
+            /*
+            return entity.Y + GameForm.SIZEOFSQUARE == this.Y && entity.X == this.X || // north
+
+                   entity.X - GameForm.SIZEOFSQUARE == this.X && entity.Y == this.Y || // east
+
+                   entity.Y - GameForm.SIZEOFSQUARE == this.Y && entity.X == this.X || // south
+
+                   entity.X + GameForm.SIZEOFSQUARE == this.X && entity.Y == this.Y; // west
+                   */
         }   
 
         /// <summary>
@@ -257,7 +283,7 @@ namespace PacManGame.Interfaces.IEntityNS
     /// </summary>
     public abstract class EntityBase : EntityTeleportation
     {
-        public delegate void EntityOverlapedEventHandler(Entity entitySender, Entity overlapedEntity);
+
     }
 
     /// <summary>

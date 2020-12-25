@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using Vector.Vector2;
@@ -33,6 +32,15 @@ namespace PacManGame.Entities
     /// </summary>
     public class PacMan : Entity
     {
+        public delegate void OnPacManDeathEventHandler(PacMan pacman);
+
+        public OnPacManDeathEventHandler PacManDeathEvent;
+
+        protected virtual void RaiseDeathEvent()
+        {
+            PacManDeathEvent?.Invoke(this);
+        }
+
         #region variables
         /// <summary>
         /// Attributs
@@ -44,6 +52,7 @@ namespace PacManGame.Entities
         private int _pacManAnimationInterval = global::PacManGame.Controllers.GameControllerNS.GameController.TIMETOUPDATE * 2;
         private Timer _onAnimationUpdate;
         private Timer _endGhostEating;
+        private const int _PACMANLIFE = 4;
         private const int _GHOSTEATINGTIME = 7000; // in ms
         private readonly Color _pacManBodyColor = Color.Yellow;
         private Direction _lastAuthorizedDirection = Direction.North;
@@ -52,14 +61,20 @@ namespace PacManGame.Entities
         private bool _isPacManMouthOpen = true;
         private bool _canPacManEatGhost = false;
         private ulong _playerScore = 0;
-        private Vector2 _deplacementPacMan;// = new Vector2(0, 0);
+        private Vector2 _vector2PacMan;// = new Vector2(0, 0);
         private ObjectContainer _objectContainer;
+        private int _pacManLife;
+
         #endregion variables
 
         #region propriety
         /// <summary>
         /// Propriety
         /// </summary>
+
+        public const int XSPAWN = 9 * GameForm.SIZEOFSQUARE;
+        public const int YSPAWN = 15 * GameForm.SIZEOFSQUARE;
+
         public override Panel Body { get => _body; set => _body = value; }
 
         private Point PacManLocation
@@ -69,18 +84,14 @@ namespace PacManGame.Entities
         }
 
         public Point GetPacManLocation { get => PacManLocation; }
-        public void SetPacManLocation(int x, int y)
-        {
-            PacManLocation = new Point(x, y);
-        }
 
-        public override Vector2 EntityVector2
+        public override Vector2 Vector2Ghost
         {
-            get => _deplacementPacMan;
+            get => _vector2PacMan;
             set
             {
-                this._deplacementPacMan.X = value.X;
-                this._deplacementPacMan.Y = value.Y;
+                this._vector2PacMan.X = value.X;
+                this._vector2PacMan.Y = value.Y;
             }
         }
 
@@ -99,6 +110,8 @@ namespace PacManGame.Entities
         public override ObjectContainer ObjectContainer { get => _objectContainer; set => _objectContainer = value; }
 
         public bool IsIdleing { get => _currentDirection != _lastAuthorizedDirection; }
+
+        public bool CanPacManEatGhost { get => _canPacManEatGhost; }
         #endregion propriety
 
         #region PacMan code
@@ -110,13 +123,6 @@ namespace PacManGame.Entities
         /// <param name="y">y location</param>
         public PacMan(int x, int y, ObjectContainer objectContainer)
         {
-            this._body = new Panel()
-            {
-                Location = new Point(x, y),
-                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE),
-                BackColor = Color.Black
-            };
-
             this.ObjectContainer = objectContainer;
 
             // getting the pointer for the graphics of the panel
@@ -125,27 +131,32 @@ namespace PacManGame.Entities
             // getting the map
             this._map = ObjectContainer.Map;
 
-            // get the grpahics of the panel
-            this._pacManGraphics = _body.CreateGraphics();
+            this._pacManLife = _PACMANLIFE;
 
-            OnStart();
+            Spawn(x, y);
         }
 
-        public override void OnStart()
+        public override void Spawn(int x, int y)
         {
-            // it work only because it's a event handler, you can't just use DrawPacManBody, you need the event handler
-            // maybe the memory problem is here
+            this._vector2PacMan = new Vector2(0, 0);
+
+            this._body = new Panel()
+            {
+                Location = new Point(x, y),
+                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE),
+                BackColor = Color.Black
+            };
+
+            this._pacManGraphics = _body.CreateGraphics();
+
             this._body.Paint += CreatePacMan;
-
-            //Body.BackgroundImage = Properties.Resources.pacman;
-
-            // create a vector for the mouvment of the pacman body
-            this._deplacementPacMan = new Vector2(0, 0);
 
             if (!G_lightMode)
             {
                 StartPacManAnimation();
             }
+
+            ObjectContainer.GameForm.panPanGame.Controls.Add(this.Body);
         }
         #endregion custom construtor
 
@@ -292,8 +303,8 @@ namespace PacManGame.Entities
 
             if (!CheckIfPackManCanMoveWhenRotaded(direction))
             {
-                _deplacementPacMan.X = 0;
-                _deplacementPacMan.Y = 0;
+                _vector2PacMan.X = 0;
+                _vector2PacMan.Y = 0;
             }
             else
             {
@@ -323,8 +334,8 @@ namespace PacManGame.Entities
             // casting heavy
             int xPosition = PacManLocation.X / GameForm.SIZEOFSQUARE;
             int yPosition = PacManLocation.Y / GameForm.SIZEOFSQUARE;
-            int xFuturePosition = _deplacementPacMan.X / SPEED;
-            int yFuturePosition = _deplacementPacMan.Y / SPEED;
+            int xFuturePosition = _vector2PacMan.X / SPEED;
+            int yFuturePosition = _vector2PacMan.Y / SPEED;
 
             // check if the future location is not a wall
             if (CheckIfOnGrid() && (_map.GameMapMeaning[yPosition + yFuturePosition, xPosition + xFuturePosition] != GameMap.MapMeaning.WALL))
@@ -385,16 +396,16 @@ namespace PacManGame.Entities
             if (CheckIfOnGrid())
             {
                 // check if the block in front of him is a wall
-                if (_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE + _deplacementPacMan.Y / SPEED, PacManLocation.X / GameForm.SIZEOFSQUARE + _deplacementPacMan.X / SPEED] == GameMap.MapMeaning.WALL)
+                if (_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE + _vector2PacMan.Y / SPEED, PacManLocation.X / GameForm.SIZEOFSQUARE + _vector2PacMan.X / SPEED] == GameMap.MapMeaning.WALL)
                 {
-                    this._deplacementPacMan.X = 0;
-                    this._deplacementPacMan.Y = 0;
+                    this._vector2PacMan.X = 0;
+                    this._vector2PacMan.Y = 0;
                     return;
                 }
             }
 
             // if not on the grid the pacman will not hit a wall
-            SetPacManLocation(PacManLocation.X + _deplacementPacMan.X, PacManLocation.Y + _deplacementPacMan.Y);
+            PacManLocation = new Point(PacManLocation.X + _vector2PacMan.X, PacManLocation.Y + _vector2PacMan.Y);
         }
 
         /// <summary>
@@ -413,6 +424,11 @@ namespace PacManGame.Entities
 
                 // chanching the type of case
                 _map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] = GameMap.MapMeaning.ROAD;
+
+                if ((Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] == Food.FoodMeaning.BIGFOOD)
+                {
+                    StartGhostEating();
+                }
             }
         }
 
@@ -440,22 +456,10 @@ namespace PacManGame.Entities
             ((Timer)sender).Dispose();
         }
 
-        public void EatGhost()
-        {
-            if (_canPacManEatGhost)
-            {
-
-            }
-            else
-            {
-                // he die
-            }
-        }
-
         public void SetPacManDeplacement(int x, int y)
         {
-            _deplacementPacMan.X = x;
-            _deplacementPacMan.Y = y;
+            _vector2PacMan.X = x;
+            _vector2PacMan.Y = y;
         }
         #endregion PacMan miscellaneous
 
@@ -471,7 +475,6 @@ namespace PacManGame.Entities
             }
 
             GC.SuppressFinalize(this);
-
         }
 
         /// <summary>
@@ -484,25 +487,40 @@ namespace PacManGame.Entities
             {
                 _body.Dispose();
                 _onAnimationUpdate.Dispose();
-                _endGhostEating.Dispose();
-                _deplacementPacMan.Dispose();
+                if (_endGhostEating != null)
+                {
+                    _endGhostEating.Dispose();
+                }
+
+                _vector2PacMan.Dispose();
             }
 
             base.Dispose(disposing);
 
             _disposed = true;
         }
-
-        public override void Spawn()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Die()
-        {
-            throw new NotImplementedException();
-        }
         #endregion memory managment
+
+        public void RaiseDeath()
+        {
+            this.RaiseDeathEvent();
+        }
+
+        public override void Dispawn()
+        {
+            base.Dispawn();
+        }
+
+        public override bool IsAlive()
+        {
+            return this._pacManLife >= 0;
+        }
+
+        public override bool Die()
+        {
+            this._pacManLife--;
+            return IsAlive();
+        }
         #endregion PacMan code
 
         #region PacMan classes

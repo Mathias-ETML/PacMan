@@ -8,6 +8,7 @@ using System.Drawing;
 
 namespace PacManGame.Test
 {
+#pragma warning disable 0169
     public abstract class RoundPanel
     {
         // todo : re coder rectangle en circle
@@ -31,4 +32,5 @@ namespace PacManGame.Test
             throw new NotImplementedException("2021");
         }
     }
+#pragma warning restore 0169
 }

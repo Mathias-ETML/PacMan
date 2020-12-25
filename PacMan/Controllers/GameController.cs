@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using PacManGame.Interfaces.IControllerNS;
 using PacManGame.Entities;
 using PacManGame.Interfaces.IEntityNS;
 using static PacManGame.Interfaces.IEntityNS.Entity;
-using static PacManGame.Interfaces.IEntityNS.EntityBase;
+using static PacManGame.Entities.PacMan;
+using static PacManGame.Entities.Ghost;
+using System.Diagnostics;
 
 namespace PacManGame.Controllers.GameControllerNS
 {
@@ -30,7 +27,7 @@ namespace PacManGame.Controllers.GameControllerNS
 
         public void OnStart()
         {
-            base.OnStart(new OnUpdateFunctionPointer(this.OnUpdate), new EntityOverlapedEventHandler(this.OnEntityOverlapEvent));
+            base.OnStart(new OnUpdateFunctionPointer(this.OnUpdate), new EntityOverlapedEventHandler(this.OnEntityOverlapEvent), new OnPacManDeathEventHandler(this.OnPacManDeathEvent), new OnGhostDeathEventHandler(this.OnGhostDeathEvent));
         }
 
         public override void OnUpdate()
@@ -78,6 +75,60 @@ namespace PacManGame.Controllers.GameControllerNS
 
                 return;
             }
+
+            PacMan pacman;
+            Ghost ghost;
+
+            if (sender is Ghost)
+            {
+                ghost = sender as Ghost;
+                pacman = overlaped as PacMan;
+            }
+            else
+            {
+                pacman = sender as PacMan;
+                ghost = overlaped as Ghost;
+            }
+
+            if (pacman.CanPacManEatGhost)
+            {
+                ghost.RaiseDeath();
+            }
+            else
+            {
+                pacman.RaiseDeath();
+            }
+        }
+
+        public override void OnPacManDeathEvent(PacMan pacman)
+        {
+            if (pacman.Die())
+            {
+                pacman.Dispawn();
+                pacman.Spawn(PacMan.XSPAWN, PacMan.YSPAWN);
+            }
+            else
+            {
+                ObjectContainer.PacMans.Remove(pacman);
+                pacman.Dispose();
+
+                if (ObjectContainer.PacMans.Count == 0) // multiplayer next year
+                {
+                    GameControllerManager.TerminateGame(this);
+                }
+            }
+        }
+
+        public override void OnGhostDeathEvent(Ghost ghost)
+        {
+            if (ghost.Die())
+            {
+                // not implemented, but you can if you want
+            }
+            else
+            {
+                ghost.Dispawn();
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -99,6 +150,18 @@ namespace PacManGame.Controllers.GameControllerNS
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
+        }
+    }
+
+    public static class GameControllerManager
+    {
+        /// <summary>
+        /// this is bad but at this point yolo
+        /// </summary>
+        /// <param name="gameController">game controller</param>
+        public static void TerminateGame(GameController gameController)
+        {
+            gameController.Dispose();
         }
     }
 }

@@ -20,6 +20,15 @@ namespace PacManGame.Entities
 {
     public class Ghost : Entity
     {
+        public delegate void OnGhostDeathEventHandler(Ghost pacman);
+
+        public OnGhostDeathEventHandler GhostDeathEvent;
+
+        protected virtual void RaiseDeathEvent()
+        {
+            GhostDeathEvent?.Invoke(this);
+        }
+
         #region variables
         #region enum
         /// <summary>
@@ -33,6 +42,7 @@ namespace PacManGame.Entities
             RED
         }
         #endregion enum
+        private const int _GHOSTLIFE = 1;
         private ObjectContainer _objectContainer;
         private GameMap _map;
         private Panel _body;
@@ -41,20 +51,21 @@ namespace PacManGame.Entities
         private bool _disposed = false;
         private readonly Type _type;
         private GhostAI _AI;
-        private Vector2 _deplacementGhost;
+        private Vector2 _vector2Ghost;
         private readonly Color _color;
         private Direction _currentDirection = Direction.East;
+        private int _ghostLife;
         #endregion variables
 
         #region proprieties
         public override Panel Body { get => _body; set => _body = value; }
-        public override Vector2 EntityVector2
+        public override Vector2 Vector2Ghost
         {
-            get => _deplacementGhost;
+            get => _vector2Ghost;
             set
             {
-                _deplacementGhost.X = value.X;
-                _deplacementGhost.Y = value.Y; // not getting the pointer, but the value, so no need to clone
+                _vector2Ghost.X = value.X;
+                _vector2Ghost.Y = value.Y; // not getting the pointer, but the value, so no need to clone
             }
         }
         public GameMap Map { get => _map; }
@@ -72,22 +83,13 @@ namespace PacManGame.Entities
         #region Ghost construtor
         public Ghost(int x, int y, Type type, ObjectContainer objectContainer)
         {
-            this._body = new Panel()
-            {
-                Location = new Point(x, y),
-                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE), 
-                BackColor = Color.Black
-            };
-
             this.ObjectContainer = objectContainer;
 
             this._windowGameGraphics = ObjectContainer.GameFormPanelGraphics;
 
             this._map = ObjectContainer.Map;
 
-            this._ghostGraphics = _body.CreateGraphics();
-
-            this._deplacementGhost = new Vector2(0, 0);
+            this._type = type;
 
             switch (type)
             {
@@ -113,14 +115,27 @@ namespace PacManGame.Entities
                     break;
             }
 
-            this._type = type;
+            this._ghostLife = _GHOSTLIFE;
 
-            OnStart();
+            Spawn(x, y);
         }
 
-        public override void OnStart()
+        public override void Spawn(int x, int y)
         {
+            this._vector2Ghost = new Vector2(0, 0);
+
+            this._body = new Panel()
+            {
+                Location = new Point(x, y),
+                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE),
+                BackColor = Color.Black
+            };
+
+            this._ghostGraphics = _body.CreateGraphics();
+
             this._body.Paint += CreateGhost;
+
+            ObjectContainer.GameForm.panPanGame.Controls.Add(this.Body);
         }
 
         private void CreateGhost(object sender, EventArgs e)
@@ -245,6 +260,27 @@ namespace PacManGame.Entities
         }
         #endregion GhostMisc
 
+        public override bool IsAlive()
+        {
+            return this._ghostLife >= 0;
+        }
+
+        public override bool Die()
+        {
+            this._ghostLife--;
+            return IsAlive();
+        }
+
+        public override void Dispawn()
+        {
+            base.Dispawn();
+        }
+
+        public void RaiseDeath()
+        {
+            this.RaiseDeathEvent();
+        }
+
         #region memory managment
         /// <summary>
         /// Dispose
@@ -264,7 +300,7 @@ namespace PacManGame.Entities
             if (disposing)
             {
                 _body.Dispose();
-                _deplacementGhost.Dispose();
+                _vector2Ghost.Dispose();
                 _AI.Dispose();
             }
 
@@ -273,15 +309,7 @@ namespace PacManGame.Entities
             _disposed = true;
         }
 
-        public override void Spawn()
-        {
-            throw new NotImplementedException();
-        }
 
-        public override void Die()
-        {
-            throw new NotImplementedException();
-        }
         #endregion memory managment
     }
 
@@ -318,11 +346,6 @@ namespace PacManGame.Entities
                 base._rayon = RAYON;
             }
 
-            public override void OnStart()
-            {
-                base.OnStart();
-            }
-
             /// <summary>
             /// On update function
             /// </summary>
@@ -352,12 +375,6 @@ namespace PacManGame.Entities
             public BlueAI(Ghost ghost) : base(ghost)
             {
                 base._rayon = RAYON;
-                OnStart();
-            }
-
-            public override void OnStart()
-            {
-                base.OnStart();
             }
 
             /// <summary>
@@ -374,8 +391,6 @@ namespace PacManGame.Entities
                 base.OnUpdate();
             }
 
-
-
             /// <summary>
             /// Find a random direction 
             /// </summary>
@@ -391,12 +406,12 @@ namespace PacManGame.Entities
                     }
 
                     base.CurrentDirection = directions[0];
-                    base._ghost.EntityVector2 = DirectionsValues[directions[0]];
+                    base._ghost.Vector2Ghost = DirectionsValues[directions[0]];
                 }
                 else
                 {
                     base.CurrentDirection = directions[_rnd.Next(0, directions.Count)];
-                    base._ghost.EntityVector2 = DirectionsValues[base.CurrentDirection]; 
+                    base._ghost.Vector2Ghost = DirectionsValues[base.CurrentDirection]; 
                     // i made a big mistake, i got the pointer to the object in the dictionary
                     // sometime i want to manage myself the pointers
                 }
@@ -422,11 +437,6 @@ namespace PacManGame.Entities
             public PinkAI(Ghost ghost) : base(ghost)
             {
                 base._rayon = RAYON;
-            }
-
-            public override void OnStart()
-            {
-                base.OnStart();
             }
 
             /// <summary>
@@ -459,12 +469,6 @@ namespace PacManGame.Entities
             {
                 base._rayon = RAYON;
                 this._map = map;
-                OnStart();
-            }
-
-            public override void OnStart()
-            {
-                base.OnStart();
             }
 
             /// <summary>
@@ -477,22 +481,12 @@ namespace PacManGame.Entities
                     if (base.AvailableDirections().Count == 1)
                     {
                         base.CurrentDirection = AvailableDirections()[0];
-                        base._ghost.EntityVector2 = DirectionsValues[CurrentDirection];
+                        base._ghost.Vector2Ghost = DirectionsValues[CurrentDirection];
                     }
                     else
                     {
                         ChasePacMan();
                     }
-
-                    /*
-                    if (base.NeedVectorUpdate())
-                    {
-                        ChasePacMan();
-                    }
-                    else if (base.AvailableDirections().Count > 1)
-                    {
-                        ChasePacMan();
-                    }*/
                 }
 
                 base.OnUpdate();
@@ -501,7 +495,7 @@ namespace PacManGame.Entities
             private void ChasePacMan()
             {
                 base.CurrentDirection = BestDirectionToChoose();
-                base._ghost.EntityVector2 = DirectionsValues[CurrentDirection];
+                base._ghost.Vector2Ghost = DirectionsValues[CurrentDirection];
             }
 
             private Direction BestDirectionToChoose()
@@ -568,7 +562,7 @@ namespace PacManGame.Entities
             {
                 List<Direction> directions = base.AvailableDirections();
                 base.CurrentDirection = directions[0];
-                base._ghost.EntityVector2 = DirectionsValues[directions[0]];
+                base._ghost.Vector2Ghost = DirectionsValues[directions[0]];
             }
         }
     }
@@ -594,13 +588,6 @@ namespace PacManGame.Entities
         public GhostAI(Ghost ghost)
         {
             this._ghost = ghost;
-            OnStart();
-        }
-
-        public virtual void OnStart()
-        {
-            this._ghost.EntityVector2.X = Ghost.SPEED;
-            this._ghost.EntityVector2.Y = 0;
         }
 
         /// <summary>
@@ -616,7 +603,7 @@ namespace PacManGame.Entities
         /// </summary>
         protected void MoveGhost()
         {
-            _ghost.Location = new Point(_ghost.X + _ghost.EntityVector2.X, _ghost.Y + _ghost.EntityVector2.Y); // wierd bug, when a ghost move, it erase the last graphic.fillRectangle, in 
+            _ghost.Location = new Point(_ghost.X + _ghost.Vector2Ghost.X, _ghost.Y + _ghost.Vector2Ghost.Y); // wierd bug, when a ghost move, it erase the last graphic.fillRectangle, in 
         }
 
         /// <summary>
@@ -636,11 +623,11 @@ namespace PacManGame.Entities
         /// <returns>if ghost can move</returns>
         protected bool NeedVectorUpdate()
         {
-            if (_ghost.GetGameMapMeaning(_ghost.EntityVector2.X / Ghost.SPEED, _ghost.EntityVector2.Y / Ghost.SPEED) == GameMap.MapMeaning.WALL)
+            if (_ghost.GetGameMapMeaning(_ghost.Vector2Ghost.X / Ghost.SPEED, _ghost.Vector2Ghost.Y / Ghost.SPEED) == GameMap.MapMeaning.WALL)
             //if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.Y / Ghost.SPEED, _ghost.X / GameForm.SIZEOFSQUARE + _ghost.EntityVector2.X / Ghost.SPEED] == GameMap.MapMeaning.WALL)
             {
-                this._ghost.EntityVector2.X = 0;
-                this._ghost.EntityVector2.Y = 0;
+                this._ghost.Vector2Ghost.X = 0;
+                this._ghost.Vector2Ghost.Y = 0;
 
                 return true;
             }
@@ -659,44 +646,20 @@ namespace PacManGame.Entities
         {
             List<Direction> vs = new List<Direction>();
 
-            /*
-            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE - 1, _ghost.X / GameForm.SIZEOFSQUARE] != GameMap.MapMeaning.WALL)
-            {
-                vs.Add(Direction.North);
-            }*/
-
             if (_ghost.GetGameMapMeaning(0, -GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.North);
             }
-
-            /*
-            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL)
-            {
-                vs.Add(Direction.East);
-            }*/
 
             if (_ghost.GetGameMapMeaning(GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.East);
             }
 
-            /*
-            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE + 1, _ghost.X / GameForm.SIZEOFSQUARE] != GameMap.MapMeaning.WALL)
-            {
-                vs.Add(Direction.South);
-            }*/
-
             if (_ghost.GetGameMapMeaning(0, GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.South);
             }
-            
-            /*
-            if (_ghost.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL)
-            {
-                vs.Add(Direction.West);
-            }*/
 
             if (_ghost.GetGameMapMeaning(-GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
             {

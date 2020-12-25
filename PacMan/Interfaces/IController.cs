@@ -8,7 +8,9 @@ using PacManGame.Map;
 using PacManGame.GameView;
 using PacManGame.Interfaces.IEntityNS;
 using System.Collections;
-using static PacManGame.Interfaces.IEntityNS.EntityBase;
+using static PacManGame.Interfaces.IEntityNS.Entity;
+using static PacManGame.Entities.PacMan;
+using static PacManGame.Entities.Ghost;
 
 namespace PacManGame.Interfaces.IControllerNS
 {
@@ -191,7 +193,13 @@ namespace PacManGame.Interfaces.IControllerNS
         /// On start function
         /// </summary>
         /// <param name="onUpdateFunctionPointer">pointer to the on update function of the child class</param>
-        public virtual void OnStart(OnUpdateFunctionPointer onUpdateFunctionPointer, EntityOverlapedEventHandler onEntityOverlapFunctionPointer)
+        /// <param name="onEntityOverlapFunctionPointer">pointer to the overlap function of the child class</param>
+        /// <param name="onPacManDeathEventHandler">pointer to the pacman death function of the child class</param>
+        /// <param name="onGhostDeathEventHandler">pointer to the ghost death function of the child class</param>
+        public virtual void OnStart(OnUpdateFunctionPointer onUpdateFunctionPointer, 
+                                    EntityOverlapedEventHandler onEntityOverlapFunctionPointer, 
+                                    OnPacManDeathEventHandler onPacManDeathEventHandler,
+                                    OnGhostDeathEventHandler onGhostDeathEventHandler)
         {
             this._onUpdateFunctionPointer = onUpdateFunctionPointer;
 
@@ -203,11 +211,11 @@ namespace PacManGame.Interfaces.IControllerNS
 
             for (int i = 0; i < NUMBEROFMAXIMUMPACMANWHILEIAMTOOLAZYTODOTCPIPPLEMENTATION; i++)
             {
-                ObjectContainer.PacMans.Add(new PacMan(40, 120, ObjectContainer));
+                ObjectContainer.PacMans.Add(new PacMan(PacMan.XSPAWN, PacMan.YSPAWN, ObjectContainer));
             }
 
-            ObjectContainer.Ghosts.Add(new Ghost(0 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.BLUE, ObjectContainer));
-            ObjectContainer.Ghosts.Add(new Ghost(2 * GameForm.SIZEOFSQUARE + GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE, Ghost.Type.RED, ObjectContainer));
+            ObjectContainer.Ghosts.Add(new Ghost(6 * GameForm.SIZEOFSQUARE, 7 * GameForm.SIZEOFSQUARE, Ghost.Type.BLUE, ObjectContainer));
+            ObjectContainer.Ghosts.Add(new Ghost((6 + 6) * GameForm.SIZEOFSQUARE, (7 + 4) * GameForm.SIZEOFSQUARE, Ghost.Type.RED, ObjectContainer));
 
             /*
             for (int i = 0; i < NUMBEROFMAXIMUMGHOST; i++)
@@ -217,8 +225,17 @@ namespace PacManGame.Interfaces.IControllerNS
 
             foreach (Entity item in ObjectContainer)
             {
-                ObjectContainer.GameForm.panPanGame.Controls.Add(item.Body);
+                //ObjectContainer.GameForm.panPanGame.Controls.Add(item.Body);
                 item.EntityOverlaped += onEntityOverlapFunctionPointer;
+
+                if (item is PacMan)
+                {
+                    ((PacMan)item).PacManDeathEvent += onPacManDeathEventHandler;
+                }
+                else
+                {
+                    ((Ghost)item).GhostDeathEvent += onGhostDeathEventHandler;
+                }
             }
 
             Application.Run(ObjectContainer.GameForm);
@@ -246,8 +263,12 @@ namespace PacManGame.Interfaces.IControllerNS
 
         public abstract void OnEntityOverlapEvent(Entity sender, Entity overlaped);
 
+        public abstract void OnPacManDeathEvent(PacMan pacman);
+
+        public abstract void OnGhostDeathEvent(Ghost ghost);
+
         #region IDisposable Support
-        protected new virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
@@ -264,7 +285,7 @@ namespace PacManGame.Interfaces.IControllerNS
 
         public new void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true); // bug here
             GC.SuppressFinalize(this);
         }
         #endregion
