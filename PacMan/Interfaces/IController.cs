@@ -76,20 +76,24 @@ namespace PacManGame.Interfaces.IControllerNS
                     Map.Dispose();
                     GameForm.Dispose();
 
-                    foreach (PacMan pc in PacMans)
+                    for (int i = 0; i < PacMans.Count; i++)
                     {
-                        pc.Dispose();
+                        PacMan buffer = PacMans[i];
+                        PacMans.Remove(buffer);
+                        buffer.Dispose();
+                        i--;
                     }
 
-                    foreach (Ghost gh in Ghosts)
+                    for (int i = 0; i < Ghosts.Count; i++)
                     {
-                        gh.Dispose();
+                        Ghost buffer = Ghosts[i];
+                        Ghosts.Remove(buffer);
+                        buffer.Dispose();
+                        i--;
                     }
 
                     GameFormPanelGraphics.Dispose();
                 }
-
-                GameFormPanelGraphics = null;
 
                 disposedValue = true;
             }
@@ -268,16 +272,14 @@ namespace PacManGame.Interfaces.IControllerNS
         public abstract void OnGhostDeathEvent(Ghost ghost);
 
         #region IDisposable Support
-        protected override void Dispose(bool disposing)
+        protected new virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
-
+                    base.Dispose(true);
                 }
-
-                base.Dispose();
 
                 disposedValue = true;
             }

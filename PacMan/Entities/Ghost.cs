@@ -282,34 +282,31 @@ namespace PacManGame.Entities
         }
 
         #region memory managment
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _body.Dispose();
+                    _vector2Ghost.Dispose();
+                    _AI.Dispose();
+                    base.Dispose(true);
+                }
+            }
+
+            _disposed = true;
+        }
+
         /// <summary>
         /// Dispose
         /// </summary>
         public new void Dispose()
         {
-            if (!_disposed)
-            {
-                this.Dispose(true);
-            }
-
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _body.Dispose();
-                _vector2Ghost.Dispose();
-                _AI.Dispose();
-            }
-
-            base.Dispose(disposing);
-
-            _disposed = true;
-        }
-
-
         #endregion memory managment
     }
 
@@ -677,7 +674,7 @@ namespace PacManGame.Entities
         {
             if (disposing)
             {
-
+                
             }
         }
 

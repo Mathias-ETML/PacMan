@@ -133,7 +133,11 @@ namespace PacManGame.Interfaces.IEntityNS
             Point lastPosition = this.Body.Location;
             Point buffer = EntityTeleportation.EntityTeleportationDictionaryRelation[this.Body.Location];
             this.Body.Location = new Point(buffer.X, buffer.Y);
-            GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, GetGameMapMeaning(), lastPosition.X, lastPosition.Y);
+            GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics, GameMap.MapMeaning.TELEPORT, lastPosition.X, lastPosition.Y);
+
+            // there is a bug with creating a new point for a panel :
+            // it erase the last drawn rectangle
+            // why ? idk. maybe the stack ?
         }
 
         /// <summary>
@@ -234,13 +238,10 @@ namespace PacManGame.Interfaces.IEntityNS
                     break;
             }
 
-            GameMap.DrawMapRectangle(
-                
-                ObjectContainer.GameFormPanelGraphics, 
-                
-                ObjectContainer.Map.GameMapMeaning[(this.Body.Location.Y + y) / GameForm.SIZEOFSQUARE, (this.Body.Location.X + x) / GameForm.SIZEOFSQUARE], 
-
-                (this.Body.Location.X + x), (this.Body.Location.Y + y)  );
+            // draw the map
+            GameMap.DrawMapRectangle(ObjectContainer.GameFormPanelGraphics,
+                                     GetGameMapMeaning(x, y), 
+                                    (this.Body.Location.X + x), (this.Body.Location.Y + y)  );
         }
 
         #region IDisposable Support

@@ -35,6 +35,7 @@ namespace PacManGame.Map
         public const int WIDTH = 19;
         public const int HEIGHT = 19;
         private static SolidBrush _solidBrush = new SolidBrush(Color.Empty);
+        private static Pen _pen = new Pen(Color.Empty);
         private FoodMap _foodMap;
         private MapMeaning[,] _gameMap;
         private bool disposedValue = false; // Pour détecter les appels redondants
@@ -103,6 +104,8 @@ namespace PacManGame.Map
             _solidBrush.Color = _mapDictionary[mapMeaning];
 
             graphics.FillRectangle(_solidBrush, x, y, width, height);
+
+            graphics.DrawRectangle(_pen, x, y, width, height);
         }
 
 
@@ -197,10 +200,11 @@ namespace PacManGame.Map
             {
                 if (disposing)
                 {
-
+                    _foodMap.Dispose();
                 }
 
-                _foodMap.Dispose();
+                this._gameMap = null;
+
 
                 disposedValue = true;
             }

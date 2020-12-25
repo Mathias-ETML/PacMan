@@ -417,7 +417,14 @@ namespace PacManGame.Entities
             if (CheckIfOnGrid())
             {
                 // adding point
-                AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE]]);
+                if ((Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] == Food.FoodMeaning.BIGFOOD)
+                {
+                    StartGhostEating();
+                }
+                else
+                {
+                    AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE]]);
+                }
 
                 // removing the food
                 _map.FoodsMap[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE].Dispose();
@@ -425,10 +432,7 @@ namespace PacManGame.Entities
                 // chanching the type of case
                 _map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] = GameMap.MapMeaning.ROAD;
 
-                if ((Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] == Food.FoodMeaning.BIGFOOD)
-                {
-                    StartGhostEating();
-                }
+
             }
         }
 
@@ -493,9 +497,11 @@ namespace PacManGame.Entities
                 }
 
                 _vector2PacMan.Dispose();
+
+
+                base.Dispose(true);
             }
 
-            base.Dispose(disposing);
 
             _disposed = true;
         }

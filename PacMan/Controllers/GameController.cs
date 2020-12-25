@@ -39,22 +39,45 @@ namespace PacManGame.Controllers.GameControllerNS
 
         public override void OnUpdateGhost()
         {
+            for (int i = 0; i < ObjectContainer.Ghosts.Count; i++)
+            {
+                ObjectContainer.Ghosts[i].OnUpdate();
+            }
+
+            /*
             foreach (Ghost gh in ObjectContainer.Ghosts)
             {
                 gh.OnUpdate();
-            }
+            }*/
         }
 
         public override void OnUpdatePacMan()
         {
+            for (int i = 0; i < ObjectContainer.PacMans.Count; i++)
+            {
+                ObjectContainer.PacMans[i].OnUpdate();
+            }
+
+            /*
             foreach (PacMan pc in ObjectContainer.PacMans)
             {
                 pc.OnUpdate();
-            }
+            }*/
         }
 
         public override void OnUpdateMap()
         {
+            for (int i = 0; i < ObjectContainer.Ghosts.Count; i++)
+            {
+                ObjectContainer.Ghosts[i].OnUpdateMap();
+            }
+
+            for (int i = 0; i < ObjectContainer.PacMans.Count; i++)
+            {
+                ObjectContainer.PacMans[i].OnUpdateMap();
+            }
+
+            /*
             foreach (Ghost gh in ObjectContainer.Ghosts)
             {
                 gh.OnUpdateMap();
@@ -63,7 +86,7 @@ namespace PacManGame.Controllers.GameControllerNS
             foreach (PacMan pc in ObjectContainer.PacMans)
             {
                 pc.OnUpdateMap();
-            }
+            }*/
         }
 
         public override void OnEntityOverlapEvent(Entity sender, Entity overlaped)
@@ -79,15 +102,16 @@ namespace PacManGame.Controllers.GameControllerNS
             PacMan pacman;
             Ghost ghost;
 
-            if (sender is Ghost)
+            switch (sender)
             {
-                ghost = sender as Ghost;
-                pacman = overlaped as PacMan;
-            }
-            else
-            {
-                pacman = sender as PacMan;
-                ghost = overlaped as Ghost;
+                case Ghost _:
+                    ghost = sender as Ghost;
+                    pacman = overlaped as PacMan;
+                    break;
+                default:
+                    pacman = sender as PacMan;
+                    ghost = overlaped as Ghost;
+                    break;
             }
 
             if (pacman.CanPacManEatGhost)
@@ -104,6 +128,7 @@ namespace PacManGame.Controllers.GameControllerNS
         {
             if (pacman.Die())
             {
+                pacman.OnUpdateMap();
                 pacman.Dispawn();
                 pacman.Spawn(PacMan.XSPAWN, PacMan.YSPAWN);
             }
@@ -118,7 +143,7 @@ namespace PacManGame.Controllers.GameControllerNS
                 }
             }
         }
-
+        
         public override void OnGhostDeathEvent(Ghost ghost)
         {
             if (ghost.Die())
@@ -127,7 +152,10 @@ namespace PacManGame.Controllers.GameControllerNS
             }
             else
             {
+                ghost.OnUpdateMap();
                 ghost.Dispawn();
+                ObjectContainer.Ghosts.Remove(ghost);
+                ghost.Dispose();
             }
         }
 
@@ -137,10 +165,8 @@ namespace PacManGame.Controllers.GameControllerNS
             {
                 if (disposing)
                 {
-
+                    base.Dispose(true);
                 }
-
-                base.Dispose();
 
                 disposedValue = true;
             }
