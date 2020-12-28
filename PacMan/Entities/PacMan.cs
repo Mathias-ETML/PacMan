@@ -52,10 +52,15 @@ namespace PacManGame.Entities
         private int _pacManAnimationInterval = global::PacManGame.Controllers.GameControllerNS.GameController.TIMETOUPDATE * 2;
         private Timer _onAnimationUpdate;
         private Timer _endGhostEating;
+        private Timer _endSpawnProtection;
         private const int _PACMANLIFE = 4;
         private const int _GHOSTEATINGTIME = 7000; // in ms
+        private const int _SPAWNPROTECTIONTIME = 5000; // in ms
         private readonly Color _pacManBodyColor = Color.Yellow;
         private Direction _lastAuthorizedDirection = Direction.North;
+
+        // current direction need to be put together with the vector
+        // need to do a struct
         private Direction _currentDirection = Direction.North;
         private bool _disposed = false;
         private bool _isPacManMouthOpen = true;
@@ -64,6 +69,7 @@ namespace PacManGame.Entities
         private Vector2 _vector2PacMan;// = new Vector2(0, 0);
         private ObjectContainer _objectContainer;
         private int _pacManLife;
+        private bool _spawnProtection = false;
 
         #endregion variables
 
@@ -112,6 +118,8 @@ namespace PacManGame.Entities
         public bool IsIdleing { get => _currentDirection != _lastAuthorizedDirection; }
 
         public bool CanPacManEatGhost { get => _canPacManEatGhost; }
+
+        public bool SpawnProtection { get => _spawnProtection; }
         #endregion propriety
 
         #region PacMan code
@@ -157,6 +165,8 @@ namespace PacManGame.Entities
             }
 
             ObjectContainer.GameForm.panPanGame.Controls.Add(this.Body);
+
+            this.StartSpawnProtection();
         }
         #endregion custom construtor
 
@@ -421,10 +431,10 @@ namespace PacManGame.Entities
                 {
                     StartGhostEating();
                 }
-                else
-                {
-                    AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE]]);
-                }
+
+                AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE]]);
+
+                ObjectContainer.Map.NumberOfEatenFoods++;
 
                 // removing the food
                 _map.FoodsMap[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE].Dispose();
@@ -447,6 +457,7 @@ namespace PacManGame.Entities
                 Interval = _GHOSTEATINGTIME
             };
             this._endGhostEating.Tick += StopGhostEating;
+            this._endGhostEating.Start();
         }
 
         /// <summary>
@@ -460,10 +471,26 @@ namespace PacManGame.Entities
             ((Timer)sender).Dispose();
         }
 
+        private void StartSpawnProtection()
+        {
+            this._spawnProtection = true;
+            this._endSpawnProtection = new Timer()
+            {
+                Interval = _SPAWNPROTECTIONTIME
+            };
+            this._endSpawnProtection.Tick += EndSpawnProtection;
+            this._endSpawnProtection.Start();
+        }
+
+        private void EndSpawnProtection(object sender, EventArgs e)
+        {
+            this._spawnProtection = false;
+            ((Timer)sender).Dispose();
+        }
+
         public void SetPacManDeplacement(int x, int y)
         {
-            _vector2PacMan.X = x;
-            _vector2PacMan.Y = y;
+            this._vector2PacMan = new Vector2(x, y);
         }
         #endregion PacMan miscellaneous
 

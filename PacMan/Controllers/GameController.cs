@@ -5,7 +5,8 @@ using PacManGame.Interfaces.IEntityNS;
 using static PacManGame.Interfaces.IEntityNS.Entity;
 using static PacManGame.Entities.PacMan;
 using static PacManGame.Entities.Ghost;
-using System.Diagnostics;
+using static PacManGame.Map.GameMap;
+using System.Diagnostics;    
 
 namespace PacManGame.Controllers.GameControllerNS
 {
@@ -27,14 +28,32 @@ namespace PacManGame.Controllers.GameControllerNS
 
         public void OnStart()
         {
-            base.OnStart(new OnUpdateFunctionPointer(this.OnUpdate), new EntityOverlapedEventHandler(this.OnEntityOverlapEvent), new OnPacManDeathEventHandler(this.OnPacManDeathEvent), new OnGhostDeathEventHandler(this.OnGhostDeathEvent));
+            base.OnStart(new OnUpdateFunctionPointer(this.OnUpdate), 
+                         new EntityOverlapedEventHandler(this.OnEntityOverlapEvent),
+                         new OnPacManDeathEventHandler(this.OnPacManDeathEvent), 
+                         new OnGhostDeathEventHandler(this.OnGhostDeathEvent),
+                         new OnAllFoodWasEatenEventHandler(this.OnAllFoodWasEatenEvent));
         }
 
         public override void OnUpdate()
         {
+            //Stopwatch stopwatch = new Stopwatch();
+            //stopwatch.Start();
+
             OnUpdateGhost();
             OnUpdatePacMan();
             OnUpdateMap();
+
+            //stopwatch.Stop();
+
+            // tick to complete : 15-25'000
+            // my processor speed : 4.05 ghz ( ryzen 7 3700x )
+            // time for 1 loop : 20'000 / 4'050'000'000 = 2 / 405'000
+            // give the result of ~4.938271 microseconds
+
+            // this is bad
+
+            //long p = stopwatch.ElapsedTicks;
         }
 
         public override void OnUpdateGhost()
@@ -43,12 +62,6 @@ namespace PacManGame.Controllers.GameControllerNS
             {
                 ObjectContainer.Ghosts[i].OnUpdate();
             }
-
-            /*
-            foreach (Ghost gh in ObjectContainer.Ghosts)
-            {
-                gh.OnUpdate();
-            }*/
         }
 
         public override void OnUpdatePacMan()
@@ -57,12 +70,6 @@ namespace PacManGame.Controllers.GameControllerNS
             {
                 ObjectContainer.PacMans[i].OnUpdate();
             }
-
-            /*
-            foreach (PacMan pc in ObjectContainer.PacMans)
-            {
-                pc.OnUpdate();
-            }*/
         }
 
         public override void OnUpdateMap()
@@ -76,25 +83,14 @@ namespace PacManGame.Controllers.GameControllerNS
             {
                 ObjectContainer.PacMans[i].OnUpdateMap();
             }
-
-            /*
-            foreach (Ghost gh in ObjectContainer.Ghosts)
-            {
-                gh.OnUpdateMap();
-            }
-
-            foreach (PacMan pc in ObjectContainer.PacMans)
-            {
-                pc.OnUpdateMap();
-            }*/
         }
 
         public override void OnEntityOverlapEvent(Entity sender, Entity overlaped)
         {
             if (sender is Ghost && overlaped is Ghost)
             {
-                sender.CurrentDirection = EntityDirection.GetOpposit(sender.CurrentDirection);
-                overlaped.CurrentDirection = EntityDirection.GetOpposit(overlaped.CurrentDirection);
+                sender.ChangeDirection(EntityDirection.GetOpposit(sender.CurrentDirection));
+                overlaped.ChangeDirection(EntityDirection.GetOpposit(overlaped.CurrentDirection));
 
                 return;
             }
@@ -120,6 +116,11 @@ namespace PacManGame.Controllers.GameControllerNS
             }
             else
             {
+                if (pacman.SpawnProtection)
+                {
+                    return;
+                }
+
                 pacman.RaiseDeath();
             }
         }
@@ -157,6 +158,13 @@ namespace PacManGame.Controllers.GameControllerNS
                 ObjectContainer.Ghosts.Remove(ghost);
                 ghost.Dispose();
             }
+        }
+
+        public override void OnAllFoodWasEatenEvent()
+        {
+            System.Windows.Forms.MessageBox.Show("Wow, you did it. You played this game ? That is unexcepted");
+
+            GameControllerManager.TerminateGame(this);
         }
 
         protected override void Dispose(bool disposing)

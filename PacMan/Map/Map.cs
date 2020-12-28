@@ -12,6 +12,15 @@ namespace PacManGame.Map
 {
     public class GameMap : IDisposable
     {
+        public delegate void OnAllFoodWasEatenEventHandler();
+
+        public event OnAllFoodWasEatenEventHandler AllFoodWasEatenEvent;
+
+        private void RaisAllFoodEatenEvent()
+        {   
+            AllFoodWasEatenEvent?.Invoke();
+        }
+
         #region attributs
         #region enum
         /// <summary>
@@ -39,7 +48,8 @@ namespace PacManGame.Map
         private FoodMap _foodMap;
         private MapMeaning[,] _gameMap;
         private bool disposedValue = false; // Pour détecter les appels redondants
-
+        private int _numberOfFoods = 0;
+        private int _numberOfEatenFoods = 0;
         #endregion attributs
 
         #region proprieties
@@ -49,6 +59,20 @@ namespace PacManGame.Map
 
         public MapMeaning[,] GameMapMeaning { get => _gameMap; set => _gameMap = value; }
         public Food[,] FoodsMap { get => _foodMap.FoodsMap; }
+
+        public int NumberOfFoods { get => _numberOfFoods; set => _numberOfFoods = value; }
+        public int NumberOfEatenFoods
+        {
+            get => _numberOfEatenFoods;
+            set
+            {
+                _numberOfEatenFoods = value;
+                if (_numberOfEatenFoods == _numberOfFoods)
+                {
+
+                }
+            }
+        }
         #endregion proprieties
 
         #region Constructor

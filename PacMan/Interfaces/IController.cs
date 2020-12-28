@@ -11,6 +11,7 @@ using System.Collections;
 using static PacManGame.Interfaces.IEntityNS.Entity;
 using static PacManGame.Entities.PacMan;
 using static PacManGame.Entities.Ghost;
+using static PacManGame.Map.GameMap;
 
 namespace PacManGame.Interfaces.IControllerNS
 {
@@ -200,10 +201,12 @@ namespace PacManGame.Interfaces.IControllerNS
         /// <param name="onEntityOverlapFunctionPointer">pointer to the overlap function of the child class</param>
         /// <param name="onPacManDeathEventHandler">pointer to the pacman death function of the child class</param>
         /// <param name="onGhostDeathEventHandler">pointer to the ghost death function of the child class</param>
+        /// <param name="onAllFoodWasEatenEventHandler">pointer to the function that handle when all food was eaten by pacman</param>
         public virtual void OnStart(OnUpdateFunctionPointer onUpdateFunctionPointer, 
                                     EntityOverlapedEventHandler onEntityOverlapFunctionPointer, 
                                     OnPacManDeathEventHandler onPacManDeathEventHandler,
-                                    OnGhostDeathEventHandler onGhostDeathEventHandler)
+                                    OnGhostDeathEventHandler onGhostDeathEventHandler,
+                                    OnAllFoodWasEatenEventHandler onAllFoodWasEatenEventHandler)
         {
             this._onUpdateFunctionPointer = onUpdateFunctionPointer;
 
@@ -270,6 +273,8 @@ namespace PacManGame.Interfaces.IControllerNS
         public abstract void OnPacManDeathEvent(PacMan pacman);
 
         public abstract void OnGhostDeathEvent(Ghost ghost);
+
+        public abstract void OnAllFoodWasEatenEvent();
 
         #region IDisposable Support
         protected new virtual void Dispose(bool disposing)

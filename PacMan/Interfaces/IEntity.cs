@@ -160,6 +160,13 @@ namespace PacManGame.Interfaces.IEntityNS
             return this.Body.Location.Y % GameForm.SIZEOFSQUARE == 0 && this.Body.Location.X % GameForm.SIZEOFSQUARE == 0;
         }
 
+
+        public void ChangeDirection(Direction direction)
+        {
+            this.CurrentDirection = direction;
+            this.Vector2Ghost = DirectionsValues[direction];
+        }
+
         /// <summary>
         /// Check if we overland any entity
         /// </summary>

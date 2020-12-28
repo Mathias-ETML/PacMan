@@ -20,9 +20,9 @@ namespace PacManGame.Entities
 {
     public class Ghost : Entity
     {
-        public delegate void OnGhostDeathEventHandler(Ghost pacman);
+        public delegate void OnGhostDeathEventHandler(Ghost ghost);
 
-        public OnGhostDeathEventHandler GhostDeathEvent;
+        public event OnGhostDeathEventHandler GhostDeathEvent;
 
         protected virtual void RaiseDeathEvent()
         {
@@ -254,11 +254,12 @@ namespace PacManGame.Entities
 
         #region GhostMisc
 
+
+
         public void SetGhostLocation(int x, int y)
         {
             this._body.Location = new Point(x, y);
         }
-        #endregion GhostMisc
 
         public override bool IsAlive()
         {
@@ -280,6 +281,7 @@ namespace PacManGame.Entities
         {
             this.RaiseDeathEvent();
         }
+        #endregion GhostMisc
 
         #region memory managment
 

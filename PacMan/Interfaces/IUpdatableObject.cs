@@ -1,7 +1,4 @@
-﻿using PacManGame.Interfaces.IEntityNS;
-using System;
-
-namespace PacManGame.Interfaces.IUpdatableObjectNS
+﻿namespace PacManGame.Interfaces.IUpdatableObjectNS
 {
     /// <summary>
     /// IUpdatableObject interface
@@ -17,9 +14,10 @@ namespace PacManGame.Interfaces.IUpdatableObjectNS
     public interface IUpdatableObjectGameController
     {
         void OnStart(UpdatableObjectFunctionPointer.OnUpdateFunctionPointer updatableObjectOnUpdateFunctionPointer,
-                     Entity.EntityOverlapedEventHandler onEntityOverlapFunctionPointer,
+                     IEntityNS.Entity.EntityOverlapedEventHandler onEntityOverlapFunctionPointer,
                      Entities.PacMan.OnPacManDeathEventHandler onPacManDeathEventHandler,
-                     Entities.Ghost.OnGhostDeathEventHandler onGhostDeathEventHandler);
+                     Entities.Ghost.OnGhostDeathEventHandler onGhostDeathEventHandler,
+                     Map.GameMap.OnAllFoodWasEatenEventHandler onAllFoodWasEatenEventHandler);
 
         void OnUpdate();
     }

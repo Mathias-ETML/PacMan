@@ -11,6 +11,7 @@ namespace PacManGame.GameView
     public partial class GameForm : Form
     {
         public const int SIZEOFSQUARE = 40;
+        private bool _initialised = false;
 
         #region Atrributs
         /// <summary>
@@ -41,9 +42,17 @@ namespace PacManGame.GameView
         }
         #endregion OnStart
 
-        #region food map application
+        #region food map creation
         private void DrawMapAndFood(object sender, PaintEventArgs e)
         {
+            // i dont know why but it call this two times
+            // quick fix
+            // or safety feature
+            if (_initialised)
+            {
+                return;
+            }
+
             Graphics graphics = e.Graphics;
 
             for (int y = 0; y < GameMap.HEIGHT; y++)
@@ -54,14 +63,16 @@ namespace PacManGame.GameView
 
                     if (_objectContainer.Map.GameMapMeaning[y, x] == GameMap.MapMeaning.FOOD || _objectContainer.Map.GameMapMeaning[y, x] == GameMap.MapMeaning.BIGFOOD)
                     {
+                        _objectContainer.Map.NumberOfFoods++;
                         _objectContainer.Map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)_objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
                     }
                 }
             }
 
             ((Panel)sender).Paint -= DrawMapAndFood;
+            _initialised = true;
         }
-        #endregion food map application
+        #endregion food map creation
 
         #region user input
         /// <summary>
