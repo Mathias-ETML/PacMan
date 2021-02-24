@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Vector.Vector2;
-using PacManGame.Interfaces.IEntityNS;
+using PacManGame.Interfaces;
 using PacManGame.Map;
 using PacManGame.GameView;
-using PacManGame.Interfaces.IControllerNS;
 using static PacManGame.Misc.Variables;
+using PacManGame.Controllers;
 
 /*
  * TODO : EXCEPTIONS WHEN SOMETHING GOES WRONG
@@ -43,7 +43,7 @@ namespace PacManGame.Entities
         }
         #endregion enum
         private const int _GHOSTLIFE = 1;
-        private ObjectContainer _objectContainer;
+        private IMapContainer _objectContainer;
         private GameMap _map;
         private Panel _body;
         private Graphics _ghostGraphics;
@@ -70,7 +70,7 @@ namespace PacManGame.Entities
         }
         public GameMap Map { get => _map; }
 
-        public override ObjectContainer ObjectContainer { get => _objectContainer; set => _objectContainer = value; }
+        public override IMapContainer MapContainer { get => _objectContainer; set => _objectContainer = value; }
 
         public override int X { get => base.X; }
         public override int Y { get => base.Y; }
@@ -81,13 +81,13 @@ namespace PacManGame.Entities
         #endregion proprieties
 
         #region Ghost construtor
-        public Ghost(int x, int y, Type type, ObjectContainer objectContainer)
+        public Ghost(int x, int y, Type type, GameContainer objectContainer)
         {
-            this.ObjectContainer = objectContainer;
+            this.MapContainer = objectContainer;
 
-            this._windowGameGraphics = ObjectContainer.GameFormPanelGraphics;
+            this._windowGameGraphics = MapContainer.GameFormPanelGraphics;
 
-            this._map = ObjectContainer.Map;
+            this._map = MapContainer.Map;
 
             this._type = type;
 
@@ -127,7 +127,7 @@ namespace PacManGame.Entities
             this._body = new Panel()
             {
                 Location = new Point(x, y),
-                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE),
+                Size = new Size(GameMap.SIZEOFSQUARE, GameMap.SIZEOFSQUARE),
                 BackColor = Color.Black
             };
 
@@ -135,7 +135,7 @@ namespace PacManGame.Entities
 
             this._body.Paint += CreateGhost;
 
-            ObjectContainer.GameForm.panPanGame.Controls.Add(this.Body);
+            MapContainer.GameForm.panPanGame.Controls.Add(this.Body);
         }
 
         private void CreateGhost(object sender, EventArgs e)
@@ -169,10 +169,12 @@ namespace PacManGame.Entities
         #endregion Ghost constructor
 
         #region Ghost update
-        public override void OnUpdate()
+        public override void OnUpdate(IEntityContainer entityContainer)
         {
             if (_body != null && _AI != null)
             {
+                CheckIfEntityOverlap(entityContainer);
+
                 switch (this.OnWichCaseIsEntity())
                 {
                     case GameMap.MapMeaning.TELEPORT:
@@ -188,11 +190,7 @@ namespace PacManGame.Entities
                         break;
                 }
 
-                _AI.OnUpdate();
-
-                CheckIfEntityOverlap();
-
-                //this.UpdateMap();
+                _AI.OnUpdate(entityContainer);
             }
         }
 
@@ -215,24 +213,24 @@ namespace PacManGame.Entities
             switch (_currentDirection)
             {
                 case Direction.North:
-                    y = GameForm.SIZEOFSQUARE - this.Y % GameForm.SIZEOFSQUARE;
+                    y = GameMap.SIZEOFSQUARE - this.Y % GameMap.SIZEOFSQUARE;
                     break;
                 case Direction.East:
-                    x = -this.X % GameForm.SIZEOFSQUARE;
+                    x = -this.X % GameMap.SIZEOFSQUARE;
                     if (CheckIfOnGrid())
                     {
-                        x -= GameForm.SIZEOFSQUARE;
+                        x -= GameMap.SIZEOFSQUARE;
                     }
                     break;
                 case Direction.South:
-                    y = -this.Y % GameForm.SIZEOFSQUARE;
+                    y = -this.Y % GameMap.SIZEOFSQUARE;
                     if (CheckIfOnGrid())
                     {
-                        y -= GameForm.SIZEOFSQUARE;
+                        y -= GameMap.SIZEOFSQUARE;
                     }
                     break;
                 case Direction.West:
-                    x = GameForm.SIZEOFSQUARE - this.X % GameForm.SIZEOFSQUARE;
+                    x = GameMap.SIZEOFSQUARE - this.X % GameMap.SIZEOFSQUARE;
                     break;
                 default:
                     break;
@@ -253,8 +251,6 @@ namespace PacManGame.Entities
         #endregion MapUpdate
 
         #region GhostMisc
-
-
 
         public void SetGhostLocation(int x, int y)
         {
@@ -296,6 +292,9 @@ namespace PacManGame.Entities
                     _AI.Dispose();
                     base.Dispose(true);
                 }
+
+                this.Dispawn();
+                this.OnUpdateMap();
             }
 
             _disposed = true;
@@ -348,9 +347,9 @@ namespace PacManGame.Entities
             /// <summary>
             /// On update function
             /// </summary>
-            public override void OnUpdate()
+            public override void OnUpdate(IEntityContainer entityContainer)
             {
-                base.OnUpdate();
+                base.OnUpdate(entityContainer);
             }
         }
 
@@ -379,7 +378,7 @@ namespace PacManGame.Entities
             /// <summary>
             /// On update function
             /// </summary>
-            public override void OnUpdate()
+            public override void OnUpdate(IEntityContainer entityContainer)
             {
                 if (base._ghost.CheckIfOnGrid())
                 {
@@ -387,7 +386,7 @@ namespace PacManGame.Entities
                     FindRandomDirection();
                 }
 
-                base.OnUpdate();
+                base.OnUpdate(entityContainer);
             }
 
             /// <summary>
@@ -441,9 +440,9 @@ namespace PacManGame.Entities
             /// <summary>
             /// On update function
             /// </summary>
-            public override void OnUpdate()
+            public override void OnUpdate(IEntityContainer entityContainer)
             {
-                base.OnUpdate();
+                base.OnUpdate(entityContainer);
             }
         }
 
@@ -473,10 +472,11 @@ namespace PacManGame.Entities
             /// <summary>
             /// On update function
             /// </summary>
-            public override void OnUpdate()
+            public override void OnUpdate(IEntityContainer entityContainer)
             {
                 if (_ghost.CheckIfOnGrid())
                 {
+                    // is ghost stuck ?
                     if (base.AvailableDirections().Count == 1)
                     {
                         base.CurrentDirection = AvailableDirections()[0];
@@ -484,32 +484,39 @@ namespace PacManGame.Entities
                     }
                     else
                     {
-                        ChasePacMan();
+                        ChasePacMan(entityContainer);
                     }
                 }
 
-                base.OnUpdate();
+                base.OnUpdate(entityContainer);
             }
 
-            private void ChasePacMan()
+            private void ChasePacMan(IEntityContainer entityContainer)
             {
-                base.CurrentDirection = BestDirectionToChoose();
+                base.CurrentDirection = BestDirectionToChoose(entityContainer);
                 base._ghost.Vector2Ghost = DirectionsValues[CurrentDirection];
             }
 
-            private Direction BestDirectionToChoose()
+            private PacMan ClosestPacMan(IEntityContainer entityContainer)
+            {
+                return null;
+            }
+
+            private Direction BestDirectionToChoose(IEntityContainer entityContainer)
             {
                 Direction direction;
-                int deltaX = ObjectContainer.PacMans[0].X - _ghost.X;
-                int deltaY = ObjectContainer.PacMans[0].Y - _ghost.Y;
+                PacMan closest = ClosestPacMan(entityContainer);
+                int deltaX = closest.X - _ghost.X;
+                int deltaY = closest.Y - _ghost.Y;
 
+                /*
                 System.Diagnostics.Debug.WriteLine($"deltaX : {deltaX} / deltaY : {deltaY}");
                 System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE + 1] != GameMap.MapMeaning.WALL);
-                System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL);
+                System.Diagnostics.Debug.WriteLine(ObjectContainer.Map.GameMapMeaning[_ghost.Y / GameForm.SIZEOFSQUARE, _ghost.X / GameForm.SIZEOFSQUARE - 1] != GameMap.MapMeaning.WALL);*/
 
                 // this is machin learning level thing :sunglass:
-                if (deltaX >= deltaY && base._ghost.GetGameMapMeaning(0, GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL 
-                    && base._ghost.GetGameMapMeaning(GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL || deltaY == 0)
+                if (deltaX >= deltaY && base._ghost.GetGameMapMeaning(0, GameMap.SIZEOFSQUARE) != GameMap.MapMeaning.WALL 
+                    && base._ghost.GetGameMapMeaning(GameMap.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL || deltaY == 0)
                 {
                     if (deltaX >= 0)
                     {
@@ -532,28 +539,6 @@ namespace PacManGame.Entities
                     }
                 }
 
-                /*
-                if (deltaX > 0 && ((int)CurrentDirection % 2 == 0))
-                {
-                    // move right
-                    direction = Direction.East;
-                }
-                else if (((int)CurrentDirection % 2 == 0))
-                {
-                    // move left
-                    direction = Direction.West;
-                }
-                else if (deltaY > 0)
-                {
-                    // move down
-                    direction = Direction.South;
-                }
-                else
-                {
-                    // move up
-                    direction = Direction.North;
-                }*/ 
-
                 return direction;
             }
             
@@ -573,14 +558,13 @@ namespace PacManGame.Entities
         /// </summary>
         protected int _rayon;
         protected Ghost _ghost;
-        protected ObjectContainer _objectContainer;
+        protected GameContainer _objectContainer;
 
         /// <summary>
         /// Propriety
         /// </summary>
         public Direction CurrentDirection { get => _ghost.CurrentDirection; set => _ghost.CurrentDirection = value; }
 
-        public ObjectContainer ObjectContainer { get => _ghost.ObjectContainer; set => _objectContainer = value; }
         /// <summary>
         /// constructor
         /// </summary>
@@ -592,7 +576,7 @@ namespace PacManGame.Entities
         /// <summary>
         /// On update function
         /// </summary>
-        public virtual void OnUpdate()
+        public virtual void OnUpdate(IEntityContainer entityContainer)
         {
             MoveGhost();
         }
@@ -609,11 +593,19 @@ namespace PacManGame.Entities
         /// Check if the player is to near
         /// </summary>
         /// <returns>if player is to near</returns>
-        protected bool IsPlayerToNear()
+        protected bool IsPlayerToNear(IEntityContainer entityContainer)
         {
-            // this is basicly pythagor with DeltaX and DeltaY
-            // thanks poland
-            return Math.Sqrt( Math.Pow(Math.Abs(ObjectContainer.PacMans[0].X - _ghost.X), 2) + Math.Pow(Math.Abs(ObjectContainer.PacMans[0].Y - _ghost.Y), 2)) <= _rayon;
+            foreach (PacMan item in entityContainer.PacMans)
+            {
+                // this is basicly pythagor with DeltaX and DeltaY
+                // thanks poland
+                if (Math.Sqrt(Math.Pow(Math.Abs(item.X - _ghost.X), 2) + Math.Pow(Math.Abs(item.Y - _ghost.Y), 2)) <= _rayon)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -645,22 +637,22 @@ namespace PacManGame.Entities
         {
             List<Direction> vs = new List<Direction>();
 
-            if (_ghost.GetGameMapMeaning(0, -GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
+            if (_ghost.GetGameMapMeaning(0, -GameMap.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.North);
             }
 
-            if (_ghost.GetGameMapMeaning(GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
+            if (_ghost.GetGameMapMeaning(GameMap.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.East);
             }
 
-            if (_ghost.GetGameMapMeaning(0, GameForm.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
+            if (_ghost.GetGameMapMeaning(0, GameMap.SIZEOFSQUARE) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.South);
             }
 
-            if (_ghost.GetGameMapMeaning(-GameForm.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
+            if (_ghost.GetGameMapMeaning(-GameMap.SIZEOFSQUARE, 0) != GameMap.MapMeaning.WALL)
             {
                 vs.Add(Direction.West);
             }

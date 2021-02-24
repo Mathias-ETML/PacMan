@@ -53,9 +53,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\GameContainer.cs" />
+    <Compile Include="Controllers\LogicController.cs" />
+    <Compile Include="Controllers\UpdateController.cs" />
+    <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Interfaces\IGameContainer.cs" />
+    <Compile Include="Interfaces\IControllerBase.cs" />
     <Compile Include="Misc\DataTransformation.cs" />
-    <Compile Include="Controllers\GameController.cs" />
-    <Compile Include="Interfaces\IController.cs" />
+    <Compile Include="Interfaces\IGameController.cs" />
     <Compile Include="Interfaces\IEntity.cs" />
     <Compile Include="Entities\Food.cs" />
     <Compile Include="Interfaces\IUpdatableObject.cs" />

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using PacManGame.GameView;
+using PacManGame.Map;
 
 namespace PacManGame.Entities
 {
@@ -72,8 +73,8 @@ namespace PacManGame.Entities
         /// <param name="y">y location</param>
         public static void DrawFood(Graphics graphics, FoodMeaning type, int x, int y)
         {
-            graphics.DrawEllipse(FoodColor.Pen, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (int)type, (GameForm.SIZEOFSQUARE / 10) * (int)type);
-            graphics.FillEllipse(FoodColor.SolidBrush, x + GameForm.SIZEOFSQUARE / 3, y + GameForm.SIZEOFSQUARE / 3, (GameForm.SIZEOFSQUARE / 10) * (int)type, (GameForm.SIZEOFSQUARE / 10) * (int)type);
+            graphics.DrawEllipse(FoodColor.Pen, x + GameMap.SIZEOFSQUARE / 3, y + GameMap.SIZEOFSQUARE / 3, (GameMap.SIZEOFSQUARE / 10) * (int)type, (GameMap.SIZEOFSQUARE / 10) * (int)type);
+            graphics.FillEllipse(FoodColor.SolidBrush, x + GameMap.SIZEOFSQUARE / 3, y + GameMap.SIZEOFSQUARE / 3, (GameMap.SIZEOFSQUARE / 10) * (int)type, (GameMap.SIZEOFSQUARE / 10) * (int)type);
         }
         #endregion Food
 

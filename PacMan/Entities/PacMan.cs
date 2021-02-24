@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Vector.Vector2;
-using PacManGame.Interfaces.IEntityNS;
+using PacManGame.Interfaces;
 using PacManGame.Map;
 using PacManGame.GameView;
-using PacManGame.Interfaces.IControllerNS;
 using static PacManGame.Misc.Variables;
+using PacManGame.Controllers;
 
 // TODO : GHOST EATING
 
@@ -49,7 +49,7 @@ namespace PacManGame.Entities
         private GameMap _map;
         private Graphics _pacManGraphics;
         private Graphics _windowGameGraphics;
-        private int _pacManAnimationInterval = global::PacManGame.Controllers.GameControllerNS.GameController.TIMETOUPDATE * 2;
+        private int _pacManAnimationInterval = global::PacManGame.Controllers.UpdateController.TIME_TO_UPDATE;
         private Timer _onAnimationUpdate;
         private Timer _endGhostEating;
         private Timer _endSpawnProtection;
@@ -67,7 +67,7 @@ namespace PacManGame.Entities
         private bool _canPacManEatGhost = false;
         private ulong _playerScore = 0;
         private Vector2 _vector2PacMan;// = new Vector2(0, 0);
-        private ObjectContainer _objectContainer;
+        private IMapContainer _mapContainer;
         private int _pacManLife;
         private bool _spawnProtection = false;
 
@@ -78,8 +78,8 @@ namespace PacManGame.Entities
         /// Propriety
         /// </summary>
 
-        public const int XSPAWN = 9 * GameForm.SIZEOFSQUARE;
-        public const int YSPAWN = 15 * GameForm.SIZEOFSQUARE;
+        public const int XSPAWN = 9 * GameMap.SIZEOFSQUARE;
+        public const int YSPAWN = 15 * GameMap.SIZEOFSQUARE;
 
         public override Panel Body { get => _body; set => _body = value; }
 
@@ -113,7 +113,7 @@ namespace PacManGame.Entities
         public override int X { get => base.X; }
         public override int Y { get => base.Y; }
 
-        public override ObjectContainer ObjectContainer { get => _objectContainer; set => _objectContainer = value; }
+        public override IMapContainer MapContainer { get => _mapContainer; set => _mapContainer = value; }
 
         public bool IsIdleing { get => _currentDirection != _lastAuthorizedDirection; }
 
@@ -129,15 +129,15 @@ namespace PacManGame.Entities
         /// </summary>
         /// <param name="x">x location</param>
         /// <param name="y">y location</param>
-        public PacMan(int x, int y, ObjectContainer objectContainer)
+        public PacMan(int x, int y, GameContainer objectContainer)
         {
-            this.ObjectContainer = objectContainer;
+            this.MapContainer = objectContainer;
 
             // getting the pointer for the graphics of the panel
-            this._windowGameGraphics = ObjectContainer.GameFormPanelGraphics;
+            this._windowGameGraphics = MapContainer.GameFormPanelGraphics;
 
             // getting the map
-            this._map = ObjectContainer.Map;
+            this._map = MapContainer.Map;
 
             this._pacManLife = _PACMANLIFE;
 
@@ -151,7 +151,7 @@ namespace PacManGame.Entities
             this._body = new Panel()
             {
                 Location = new Point(x, y),
-                Size = new Size(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE),
+                Size = new Size(GameMap.SIZEOFSQUARE, GameMap.SIZEOFSQUARE),
                 BackColor = Color.Black
             };
 
@@ -164,7 +164,7 @@ namespace PacManGame.Entities
                 StartPacManAnimation();
             }
 
-            ObjectContainer.GameForm.panPanGame.Controls.Add(this.Body);
+            MapContainer.GameForm.panPanGame.Controls.Add(this.Body);
 
             this.StartSpawnProtection();
         }
@@ -188,9 +188,9 @@ namespace PacManGame.Entities
         /// </summary>
         private void DrawPacManBody()
         {
-            _pacManGraphics.DrawEllipse(new Pen(_pacManBodyColor, 1), 0, 0, GameForm.SIZEOFSQUARE - 1, GameForm.SIZEOFSQUARE - 1);
+            _pacManGraphics.DrawEllipse(new Pen(_pacManBodyColor, 1), 0, 0, GameMap.SIZEOFSQUARE - 1, GameMap.SIZEOFSQUARE - 1);
 
-            _pacManGraphics.FillEllipse(new SolidBrush(_pacManBodyColor), 0, 0, GameForm.SIZEOFSQUARE - 1, GameForm.SIZEOFSQUARE - 1);
+            _pacManGraphics.FillEllipse(new SolidBrush(_pacManBodyColor), 0, 0, GameMap.SIZEOFSQUARE - 1, GameMap.SIZEOFSQUARE - 1);
         }
 
         /// <summary>
@@ -254,11 +254,11 @@ namespace PacManGame.Entities
         /// Update the pacman location
         /// </summary>
         /// <returns> return if need to update the teleportation zone </returns>
-        public override void OnUpdate()
+        public override void OnUpdate(IEntityContainer entityContainer)
         {
             if (_body != null && !_disposed)
             {
-                CheckIfEntityOverlap();
+                CheckIfEntityOverlap(entityContainer);
 
                 switch (base.OnWichCaseIsEntity())
                 {
@@ -334,16 +334,23 @@ namespace PacManGame.Entities
         /// <returns></returns>
         private bool CheckIfPackManCanMoveWhenRotaded(Direction nextDirection)
         {
+            // if is on case then no
+            if (!CheckIfOnGrid())
+            {
+                return false;
+            }
+
             // check if it's the opposit
             if (_lastAuthorizedDirection == nextDirection || _lastAuthorizedDirection == nextDirection - 2 || _lastAuthorizedDirection == nextDirection + 2)
             {
                 return true;
             }
+            
 
             // get the location, not memory frienly but processor friendly because you do it once
             // casting heavy
-            int xPosition = PacManLocation.X / GameForm.SIZEOFSQUARE;
-            int yPosition = PacManLocation.Y / GameForm.SIZEOFSQUARE;
+            int xPosition = PacManLocation.X / GameMap.SIZEOFSQUARE;
+            int yPosition = PacManLocation.Y / GameMap.SIZEOFSQUARE;
             int xFuturePosition = _vector2PacMan.X / SPEED;
             int yFuturePosition = _vector2PacMan.Y / SPEED;
 
@@ -406,7 +413,7 @@ namespace PacManGame.Entities
             if (CheckIfOnGrid())
             {
                 // check if the block in front of him is a wall
-                if (_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE + _vector2PacMan.Y / SPEED, PacManLocation.X / GameForm.SIZEOFSQUARE + _vector2PacMan.X / SPEED] == GameMap.MapMeaning.WALL)
+                if (_map.GameMapMeaning[PacManLocation.Y / GameMap.SIZEOFSQUARE + _vector2PacMan.Y / SPEED, PacManLocation.X / GameMap.SIZEOFSQUARE + _vector2PacMan.X / SPEED] == GameMap.MapMeaning.WALL)
                 {
                     this._vector2PacMan.X = 0;
                     this._vector2PacMan.Y = 0;
@@ -427,20 +434,20 @@ namespace PacManGame.Entities
             if (CheckIfOnGrid())
             {
                 // adding point
-                if ((Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] == Food.FoodMeaning.BIGFOOD)
+                if ((Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameMap.SIZEOFSQUARE, PacManLocation.X / GameMap.SIZEOFSQUARE] == Food.FoodMeaning.BIGFOOD)
                 {
                     StartGhostEating();
                 }
 
-                AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE]]);
+                AddPlayerPoints(Food.Points.PointForFoods[(Food.FoodMeaning)_map.GameMapMeaning[PacManLocation.Y / GameMap.SIZEOFSQUARE, PacManLocation.X / GameMap.SIZEOFSQUARE]]);
 
-                ObjectContainer.Map.NumberOfEatenFoods++;
+                MapContainer.Map.NumberOfEatenFoods++;
 
                 // removing the food
-                _map.FoodsMap[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE].Dispose();
+                _map.FoodsMap[PacManLocation.Y / GameMap.SIZEOFSQUARE, PacManLocation.X / GameMap.SIZEOFSQUARE].Dispose();
 
                 // chanching the type of case
-                _map.GameMapMeaning[PacManLocation.Y / GameForm.SIZEOFSQUARE, PacManLocation.X / GameForm.SIZEOFSQUARE] = GameMap.MapMeaning.ROAD;
+                _map.GameMapMeaning[PacManLocation.Y / GameMap.SIZEOFSQUARE, PacManLocation.X / GameMap.SIZEOFSQUARE] = GameMap.MapMeaning.ROAD;
 
 
             }
@@ -572,33 +579,33 @@ namespace PacManGame.Entities
             // Points for the mouht for the north
             private static Point[] North = new Point[3]
             {
-                new Point(GameForm.SIZEOFSQUARE / 2 - GameForm.SIZEOFSQUARE / 4, 0),
-                new Point(GameForm.SIZEOFSQUARE / 2 + GameForm.SIZEOFSQUARE / 4, 0),
-                new Point(GameForm.SIZEOFSQUARE / 2, GameForm.SIZEOFSQUARE / 2)
+                new Point(GameMap.SIZEOFSQUARE / 2 - GameMap.SIZEOFSQUARE / 4, 0),
+                new Point(GameMap.SIZEOFSQUARE / 2 + GameMap.SIZEOFSQUARE / 4, 0),
+                new Point(GameMap.SIZEOFSQUARE / 2, GameMap.SIZEOFSQUARE / 2)
             };
 
             // Points for the mouht for the South
             private static Point[] South = new Point[3]
             {
-                new Point(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE / 2 - GameForm.SIZEOFSQUARE / 4),
-                new Point(GameForm.SIZEOFSQUARE, GameForm.SIZEOFSQUARE / 2 + GameForm.SIZEOFSQUARE / 4),
-                new Point(GameForm.SIZEOFSQUARE / 2, GameForm.SIZEOFSQUARE / 2)
+                new Point(GameMap.SIZEOFSQUARE, GameMap.SIZEOFSQUARE / 2 - GameMap.SIZEOFSQUARE / 4),
+                new Point(GameMap.SIZEOFSQUARE, GameMap.SIZEOFSQUARE / 2 + GameMap.SIZEOFSQUARE / 4),
+                new Point(GameMap.SIZEOFSQUARE / 2, GameMap.SIZEOFSQUARE / 2)
             };
 
             // Points for the mouht for the East
             private static Point[] East = new Point[3]
             {
-                new Point(GameForm.SIZEOFSQUARE / 2 - GameForm.SIZEOFSQUARE / 4, GameForm.SIZEOFSQUARE),
-                new Point(GameForm.SIZEOFSQUARE / 2 + GameForm.SIZEOFSQUARE / 4, GameForm.SIZEOFSQUARE),
-                new Point(GameForm.SIZEOFSQUARE / 2, GameForm.SIZEOFSQUARE / 2)
+                new Point(GameMap.SIZEOFSQUARE / 2 - GameMap.SIZEOFSQUARE / 4, GameMap.SIZEOFSQUARE),
+                new Point(GameMap.SIZEOFSQUARE / 2 + GameMap.SIZEOFSQUARE / 4, GameMap.SIZEOFSQUARE),
+                new Point(GameMap.SIZEOFSQUARE / 2, GameMap.SIZEOFSQUARE / 2)
             };
 
             // Points for the mouht for the West
             private static Point[] West = new Point[3]
             {
-                new Point(0, GameForm.SIZEOFSQUARE / 2 - GameForm.SIZEOFSQUARE / 4),
-                new Point(0, GameForm.SIZEOFSQUARE / 2 + GameForm.SIZEOFSQUARE / 4),
-                new Point(GameForm.SIZEOFSQUARE / 2, GameForm.SIZEOFSQUARE / 2)
+                new Point(0, GameMap.SIZEOFSQUARE / 2 - GameMap.SIZEOFSQUARE / 4),
+                new Point(0, GameMap.SIZEOFSQUARE / 2 + GameMap.SIZEOFSQUARE / 4),
+                new Point(GameMap.SIZEOFSQUARE / 2, GameMap.SIZEOFSQUARE / 2)
             };
             #endregion mouth position
 

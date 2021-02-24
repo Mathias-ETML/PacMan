@@ -3,28 +3,27 @@ using System.Drawing;
 using System.Windows.Forms;
 using PacManGame.Map;
 using PacManGame.Entities;
-using PacManGame.Interfaces.IControllerNS;
-using PacManGame.Interfaces.IEntityNS;
+using PacManGame.Interfaces;
+using PacManGame.Controllers;
 
 namespace PacManGame.GameView
 {
     public partial class GameForm : Form
     {
-        public const int SIZEOFSQUARE = 40;
         private bool _initialised = false;
 
         #region Atrributs
         /// <summary>
         /// Attributs
         /// </summary>
-        private ObjectContainer _objectContainer;
+        private GameContainer _objectContainer;
         #endregion Attributs
 
         #region Constructor
         /// <summary>
         /// Custom constructor
         /// </summary>
-        public GameForm(ObjectContainer objectContainer)
+        public GameForm(GameContainer objectContainer)
         {
             this._objectContainer = objectContainer;
 
@@ -59,12 +58,12 @@ namespace PacManGame.GameView
             {
                 for (int x = 0; x < GameMap.WIDTH; x++)
                 {
-                    GameMap.DrawMapRectangle(graphics, _objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
+                    GameMap.DrawMapRectangle(graphics, _objectContainer.Map.GameMapMeaning[y, x], x * GameMap.SIZEOFSQUARE, y * GameMap.SIZEOFSQUARE);
 
                     if (_objectContainer.Map.GameMapMeaning[y, x] == GameMap.MapMeaning.FOOD || _objectContainer.Map.GameMapMeaning[y, x] == GameMap.MapMeaning.BIGFOOD)
                     {
                         _objectContainer.Map.NumberOfFoods++;
-                        _objectContainer.Map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)_objectContainer.Map.GameMapMeaning[y, x], x * SIZEOFSQUARE, y * SIZEOFSQUARE);
+                        _objectContainer.Map.FoodsMap[y, x] = new Food(graphics, (Food.FoodMeaning)_objectContainer.Map.GameMapMeaning[y, x], x * GameMap.SIZEOFSQUARE, y * GameMap.SIZEOFSQUARE);
                     }
                 }
             }

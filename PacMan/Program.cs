@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using PacManGame.Controllers.GameControllerNS;
+using PacManGame.Controllers;
 
 namespace PacManGame
 {
@@ -22,7 +22,8 @@ namespace PacManGame
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            GameController gameController = new GameController();
+            UpdateController updateController = new UpdateController();
+            updateController.OnStart();
         }
         #endregion Main entry
     }

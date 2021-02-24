@@ -12,6 +12,8 @@ namespace PacManGame.Map
 {
     public class GameMap : IDisposable
     {
+        public const int SIZEOFSQUARE = 40;
+
         public delegate void OnAllFoodWasEatenEventHandler();
 
         public event OnAllFoodWasEatenEventHandler AllFoodWasEatenEvent;
@@ -123,7 +125,7 @@ namespace PacManGame.Map
         /// <param name="mapMeaning"> what type of square to you want, you can pick it from the map </param>
         /// <param name="x"> x location </param>
         /// <param name="y"> y location </param>
-        public static void DrawMapRectangle(Graphics graphics, MapMeaning mapMeaning, int x, int y, int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
+        public static void DrawMapRectangle(Graphics graphics, MapMeaning mapMeaning, int x, int y, int width = GameMap.SIZEOFSQUARE, int height = GameMap.SIZEOFSQUARE)
         {
             _solidBrush.Color = _mapDictionary[mapMeaning];
 
@@ -133,7 +135,7 @@ namespace PacManGame.Map
         }
 
 
-        public static void DrawRectangle(Graphics graphics, int x, int y, Color color, int width = GameForm.SIZEOFSQUARE, int height = GameForm.SIZEOFSQUARE)
+        public static void DrawRectangle(Graphics graphics, int x, int y, Color color, int width = GameMap.SIZEOFSQUARE, int height = GameMap.SIZEOFSQUARE)
         {
             _solidBrush.Color = color;
 
